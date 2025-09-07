@@ -5,4 +5,6 @@ import j2ee.ourteam.models.user.UserDto;
 
 public interface IUserService {
   public UserDto createUser(CreateUserDto userDto);
+
+  public Object updateUser(Object userDto);
 }
