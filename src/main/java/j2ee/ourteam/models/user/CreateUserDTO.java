@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class CreateUserDto {
+public class CreateUserDTO {
   @NotBlank(message = "Username khong duoc trong")
   private String username;
 

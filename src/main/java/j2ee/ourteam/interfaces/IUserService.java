@@ -1,10 +1,10 @@
 package j2ee.ourteam.interfaces;
 
-import j2ee.ourteam.models.user.CreateUserDto;
-import j2ee.ourteam.models.user.UserDto;
+import j2ee.ourteam.models.user.CreateUserDTO;
+import j2ee.ourteam.models.user.UserDTO;
 
 public interface IUserService {
-  public UserDto createUser(CreateUserDto userDto);
+  public UserDTO createUser(CreateUserDTO userDto);
 
   // public Object updateUser(Object userDto);
 }

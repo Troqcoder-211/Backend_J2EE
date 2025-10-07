@@ -2,7 +2,7 @@ package j2ee.ourteam.controllers;
 
 import org.springframework.web.bind.annotation.RestController;
 
-import j2ee.ourteam.models.user.CreateUserDto;
+import j2ee.ourteam.models.user.CreateUserDTO;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.PutMapping;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class UserController {
 
   @PostMapping
-  private ResponseEntity<?> createUser(@Valid @RequestBody CreateUserDto request) {
+  private ResponseEntity<?> createUser(@Valid @RequestBody CreateUserDTO request) {
     return ResponseEntity.ok().body(new Object());
   }
 

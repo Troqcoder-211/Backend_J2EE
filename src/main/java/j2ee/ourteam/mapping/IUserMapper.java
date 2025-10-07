@@ -4,13 +4,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 import j2ee.ourteam.entities.User;
-import j2ee.ourteam.models.user.UserDto;
+import j2ee.ourteam.models.user.UserDTO;
 
 @Mapper
 public interface IUserMapper {
   IUserMapper INSTANCE = Mappers.getMapper(IUserMapper.class);
 
-  UserDto userEntitytoUserDto(User user);
+  UserDTO userEntitytoUserDto(User user);
 
-  User userDtotoUserEntity(UserDto userDto);
+  User userDtotoUserEntity(UserDTO userDto);
 }
