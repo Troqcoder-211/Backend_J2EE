@@ -37,7 +37,7 @@ public class Conversation {
 
   @ManyToOne
   @JoinColumn(name = "created_by")
-  private User createdBy;
+  private User created_by;
 
   @Column(name = "created_at")
   private LocalDate createdAt;
