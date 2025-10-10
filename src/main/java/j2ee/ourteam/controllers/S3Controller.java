@@ -10,7 +10,7 @@ import j2ee.ourteam.services.aws.S3Service;
 import lombok.AllArgsConstructor;
 
 @RestController
-@RequestMapping("/api/s3")
+@RequestMapping("/s3")
 @AllArgsConstructor
 public class S3Controller {
 

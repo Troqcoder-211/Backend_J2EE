@@ -3,6 +3,7 @@ package j2ee.ourteam.models.message;
 import org.hibernate.validator.constraints.UUID;
 
 import j2ee.ourteam.models.enums.Request.MessageTypeRequest;
+import j2ee.ourteam.validators.ValidUUID;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +23,7 @@ public class CreateMessageDTO {
   @NotBlank(message = "Content isn't empty")
   private String content;
 
-  @UUID
+  @ValidUUID
   private String replyTo;
 
   @NotBlank(message = "Message Type isn't empty")
