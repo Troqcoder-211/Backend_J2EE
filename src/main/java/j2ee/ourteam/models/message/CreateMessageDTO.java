@@ -2,7 +2,7 @@ package j2ee.ourteam.models.message;
 
 import org.hibernate.validator.constraints.UUID;
 
-import j2ee.ourteam.models.enums.Request.MessageTypeRequest;
+import j2ee.ourteam.enums.message.MessageTypeEnum;
 import j2ee.ourteam.validators.ValidUUID;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -15,19 +15,20 @@ import lombok.Data;
 public class CreateMessageDTO {
 
   @UUID
-  private String conversationId;
+  private UUID conversationId;
 
   @UUID
-  private String sendeId;
+  private UUID sendeId;
 
   @NotBlank(message = "Content isn't empty")
   private String content;
 
   @ValidUUID
-  private String replyTo;
+  private UUID replyTo;
 
   @NotBlank(message = "Message Type isn't empty")
+
   @Builder.Default
-  private MessageTypeRequest messageType = MessageTypeRequest.TEXT;
+  private MessageTypeEnum messageType = MessageTypeEnum.TEXT;
 
 }

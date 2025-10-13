@@ -22,5 +22,6 @@ public class MessageDTO {
   private UUID senderId;
   private UUID conversationId;
   private UUID replyTo;
+
   private Set<UUID> attachmentIds;
 }
