@@ -12,30 +12,36 @@ import j2ee.ourteam.repositories.ConversationRepository;
 @Service
 public class ConversationServiceImpl implements IConversationService {
 
-  private final ConversationRepository conversationRepository;
+  // private final ConversationRepository conversationRepository;
 
-  public ConversationServiceImpl(ConversationRepository conversationRepository) {
-    this.conversationRepository = conversationRepository;
+  @Override
+  public List<Object> findAll() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findAll'");
   }
 
   @Override
-  public List<Conversation> findAll() {
-    return conversationRepository.findAll();
+  public Optional<Object> findById(UUID id) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findById'");
   }
 
   @Override
-  public Optional<Conversation> findById(UUID id) {
-    return conversationRepository.findById(id);
+  public Object create(Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'create'");
   }
 
   @Override
-  public Conversation save(Conversation entity) {
-    return conversationRepository.save(entity);
+  public Object update(UUID id, Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'update'");
   }
 
   @Override
   public void deleteById(UUID id) {
-    conversationRepository.deleteById(id);
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
   }
 
 }

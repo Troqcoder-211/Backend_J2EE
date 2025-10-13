@@ -16,30 +16,34 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class MessageServiceImpl implements IMessageService {
-
-  private final MessageRepository messageRepository;
-
-  private final MessageMapper messageMapper;
-  // @Override
-  // public List<MessageDTO> findAll() {
-  // // return messageRepository.findAll();
-  // }
-
-  // @Override
-  // public Optional<MessageDTO> findById(UUID id) {
-  // // return messageRepository.findById(id);
-  // }
+  @Override
+  public List<MessageDTO> findAll() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findAll'");
+  }
 
   @Override
-  public MessageDTO save(CreateMessageDTO model) {
-    Message message = messageMapper.toEntity(model);
+  public Optional<MessageDTO> findById(UUID id) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findById'");
+  }
 
-    // return messageRepository.save(model);
+  @Override
+  public MessageDTO create(CreateMessageDTO dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'create'");
+  }
+
+  @Override
+  public MessageDTO update(UUID id, CreateMessageDTO dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'update'");
   }
 
   @Override
   public void deleteById(UUID id) {
-    messageRepository.deleteById(id);
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
   }
 
 }

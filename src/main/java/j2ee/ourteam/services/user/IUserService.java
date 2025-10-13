@@ -5,6 +5,6 @@ import java.util.UUID;
 import j2ee.ourteam.entities.User;
 import j2ee.ourteam.interfaces.GenericCrudService;
 
-public interface IUserService extends GenericCrudService<User, UUID> {
+public interface IUserService extends GenericCrudService<User, Object, Object, UUID> {
 
 }
