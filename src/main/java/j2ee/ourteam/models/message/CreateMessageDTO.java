@@ -18,7 +18,7 @@ public class CreateMessageDTO {
   private UUID conversationId;
 
   @UUID
-  private UUID sendeId;
+  private UUID senderId;
 
   @NotBlank(message = "Content isn't empty")
   private String content;
