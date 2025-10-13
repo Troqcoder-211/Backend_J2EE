@@ -5,6 +5,6 @@ import java.util.UUID;
 import j2ee.ourteam.entities.Presence;
 import j2ee.ourteam.interfaces.GenericCrudService;
 
-public interface IPresenceService extends GenericCrudService<Presence, UUID> {
+public interface IPresenceService extends GenericCrudService<Presence, Object, Object, UUID> {
 
 }

@@ -12,30 +12,34 @@ import j2ee.ourteam.repositories.NotificationRepository;
 @Service
 public class NotificationServiceImpl implements INotificationService {
 
-  private final NotificationRepository notificationRepository;
-
-  public NotificationServiceImpl(NotificationRepository notificationRepository) {
-    this.notificationRepository = notificationRepository;
+  @Override
+  public List<Object> findAll() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findAll'");
   }
 
   @Override
-  public List<Notification> findAll() {
-    return notificationRepository.findAll();
+  public Optional<Object> findById(UUID id) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findById'");
   }
 
   @Override
-  public Optional<Notification> findById(UUID id) {
-    return notificationRepository.findById(id);
+  public Object create(Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'create'");
   }
 
   @Override
-  public Notification save(Notification entity) {
-    return notificationRepository.save(entity);
+  public Object update(UUID id, Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'update'");
   }
 
   @Override
   public void deleteById(UUID id) {
-    notificationRepository.deleteById(id);
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
   }
 
 }

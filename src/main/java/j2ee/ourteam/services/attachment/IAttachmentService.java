@@ -5,6 +5,6 @@ import java.util.UUID;
 import j2ee.ourteam.entities.Attachment;
 import j2ee.ourteam.interfaces.GenericCrudService;
 
-public interface IAttachmentService extends GenericCrudService<Attachment, UUID> {
+public interface IAttachmentService extends GenericCrudService<Attachment, Object, Object, UUID> {
 
 }

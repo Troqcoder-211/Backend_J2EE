@@ -12,30 +12,34 @@ import j2ee.ourteam.repositories.DeviceRepository;
 @Service
 public class DeviceServiceImpl implements IDeviceService {
 
-  private final DeviceRepository deviceRepository;
-
-  public DeviceServiceImpl(DeviceRepository deviceRepository) {
-    this.deviceRepository = deviceRepository;
+  @Override
+  public List<Object> findAll() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findAll'");
   }
 
   @Override
-  public List<Device> findAll() {
-    return deviceRepository.findAll();
+  public Optional<Object> findById(UUID id) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findById'");
   }
 
   @Override
-  public Optional<Device> findById(UUID id) {
-    return deviceRepository.findById(id);
+  public Object create(Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'create'");
   }
 
   @Override
-  public Device save(Device entity) {
-    return deviceRepository.save(entity);
+  public Object update(UUID id, Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'update'");
   }
 
   @Override
   public void deleteById(UUID id) {
-    deviceRepository.deleteById(id);
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
   }
 
 }
