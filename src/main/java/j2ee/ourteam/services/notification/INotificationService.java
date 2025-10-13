@@ -5,6 +5,6 @@ import java.util.UUID;
 import j2ee.ourteam.entities.Notification;
 import j2ee.ourteam.interfaces.GenericCrudService;
 
-public interface INotificationService extends GenericCrudService<Notification, UUID> {
+public interface INotificationService extends GenericCrudService<Notification, Object, Object, UUID> {
 
 }

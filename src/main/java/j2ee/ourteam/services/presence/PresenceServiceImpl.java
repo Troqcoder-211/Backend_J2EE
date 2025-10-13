@@ -12,30 +12,34 @@ import j2ee.ourteam.repositories.PresenceRepository;
 @Service
 public class PresenceServiceImpl implements IPresenceService {
 
-  private final PresenceRepository presenceRepository;
-
-  public PresenceServiceImpl(PresenceRepository presenceRepository) {
-    this.presenceRepository = presenceRepository;
+  @Override
+  public List<Object> findAll() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findAll'");
   }
 
   @Override
-  public List<Presence> findAll() {
-    return presenceRepository.findAll();
+  public Optional<Object> findById(UUID id) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findById'");
   }
 
   @Override
-  public Optional<Presence> findById(UUID id) {
-    return presenceRepository.findById(id);
+  public Object create(Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'create'");
   }
 
   @Override
-  public Presence save(Presence entity) {
-    return presenceRepository.save(entity);
+  public Object update(UUID id, Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'update'");
   }
 
   @Override
   public void deleteById(UUID id) {
-    presenceRepository.deleteById(id);
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
   }
 
 }

@@ -12,30 +12,34 @@ import j2ee.ourteam.repositories.MessageReadRepository;
 @Service
 public class MessageReadServiceImpl implements IMessageReadService {
 
-  private final MessageReadRepository repo;
-
-  public MessageReadServiceImpl(MessageReadRepository repo) {
-    this.repo = repo;
+  @Override
+  public List<Object> findAll() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findAll'");
   }
 
   @Override
-  public List<MessageRead> findAll() {
-    return repo.findAll();
+  public Optional<Object> findById(MessageReadId id) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findById'");
   }
 
   @Override
-  public Optional<MessageRead> findById(MessageReadId id) {
-    return repo.findById(id);
+  public Object create(Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'create'");
   }
 
   @Override
-  public MessageRead save(MessageRead entity) {
-    return repo.save(entity);
+  public Object update(MessageReadId id, Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'update'");
   }
 
   @Override
   public void deleteById(MessageReadId id) {
-    repo.deleteById(id);
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
   }
 
 }

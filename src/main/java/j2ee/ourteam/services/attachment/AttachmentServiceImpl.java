@@ -12,30 +12,36 @@ import j2ee.ourteam.repositories.AttachmentRepository;
 @Service
 public class AttachmentServiceImpl implements IAttachmentService {
 
-  private final AttachmentRepository attachmentRepository;
+  // private final AttachmentRepository attachmentRepository;
 
-  public AttachmentServiceImpl(AttachmentRepository attachmentRepository) {
-    this.attachmentRepository = attachmentRepository;
+  @Override
+  public List<Object> findAll() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findAll'");
   }
 
   @Override
-  public List<Attachment> findAll() {
-    return attachmentRepository.findAll();
+  public Optional<Object> findById(UUID id) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findById'");
   }
 
   @Override
-  public Optional<Attachment> findById(UUID id) {
-    return attachmentRepository.findById(id);
+  public Object create(Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'create'");
   }
 
   @Override
-  public Attachment save(Attachment entity) {
-    return attachmentRepository.save(entity);
+  public Object update(UUID id, Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'update'");
   }
 
   @Override
   public void deleteById(UUID id) {
-    attachmentRepository.deleteById(id);
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
   }
 
 }

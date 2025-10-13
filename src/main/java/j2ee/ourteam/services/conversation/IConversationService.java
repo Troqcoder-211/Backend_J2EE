@@ -5,6 +5,6 @@ import java.util.UUID;
 import j2ee.ourteam.entities.Conversation;
 import j2ee.ourteam.interfaces.GenericCrudService;
 
-public interface IConversationService extends GenericCrudService<Conversation, UUID> {
+public interface IConversationService extends GenericCrudService<Conversation, Object, Object, UUID> {
 
 }
