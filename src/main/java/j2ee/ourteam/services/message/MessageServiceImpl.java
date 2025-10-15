@@ -6,8 +6,10 @@ import java.util.UUID;
 
 import javax.management.RuntimeErrorException;
 
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Pageable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import j2ee.ourteam.entities.Conversation;
@@ -16,6 +18,8 @@ import j2ee.ourteam.entities.User;
 import j2ee.ourteam.mapping.MessageMapper;
 import j2ee.ourteam.models.message.CreateMessageDTO;
 import j2ee.ourteam.models.message.MessageDTO;
+import j2ee.ourteam.models.message.MessageFilter;
+import j2ee.ourteam.models.message.MessageSpecification;
 import j2ee.ourteam.models.message.UpdateMessageDTO;
 import j2ee.ourteam.repositories.ConversationRepository;
 import j2ee.ourteam.repositories.MessageRepository;
@@ -85,15 +89,21 @@ public class MessageServiceImpl implements IMessageService {
   }
 
   @Override
-  public void softDelete(UUID id) {
+  public MessageDTO softDelete(UUID id) {
     try {
-      Message message = messageRepository.findById(id).orElseThrow(() -> new RuntimeException("Message not found"));
+      Message message = messageRepository.findById(id)
+          .orElseThrow(() -> new RuntimeException("Message not found"));
+
+      if (Boolean.TRUE.equals(message.getIsDeleted())) {
+        throw new RuntimeException("Message is already deleted");
+      }
 
       message.setIsDeleted(true);
-
       messageRepository.save(message);
+
+      return messageMapper.toDto(message);
     } catch (Exception e) {
-      throw new RuntimeException("Failed to soft delete  messge" + e.getMessage(), e);
+      throw new RuntimeException("Failed to soft delete message: " + e.getMessage(), e);
     }
   }
 
@@ -109,9 +119,20 @@ public class MessageServiceImpl implements IMessageService {
   }
 
   @Override
-  public Page<MessageDTO> findAllPaged(Pageable pageable) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'findAllPaged'");
+  public Page<MessageDTO> findAllPaged(MessageFilter filter) {
+    filter.normalize();
+
+    try {
+      Pageable pageable = PageRequest.of(
+          filter.getPage() - 1,
+          filter.getLimit(),
+          Sort.by(Sort.Direction.fromString(filter.getSortOrder()), filter.getSortBy()));
+
+      return messageRepository.findAll(MessageSpecification.filter(filter), pageable)
+          .map(messageMapper::toDto);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to findAllPaged" + e.getMessage(), e);
+    }
   }
 
   @Override

@@ -1,17 +1,24 @@
 package j2ee.ourteam.models.page;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @AllArgsConstructor
-@Builder
+@NoArgsConstructor
+@SuperBuilder
 public class PageFilter {
   @Builder.Default
+  @Min(1)
   private Integer page = 1;
 
   @Builder.Default
+  @Max(100)
   private Integer limit = 10;
 
   @Builder.Default

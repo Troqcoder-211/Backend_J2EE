@@ -3,6 +3,7 @@ package j2ee.ourteam.controllers;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,8 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
 import j2ee.ourteam.models.message.CreateMessageDTO;
 import j2ee.ourteam.models.message.DeleteMessageDTO;
 import j2ee.ourteam.models.message.MessageDTO;
+import j2ee.ourteam.models.message.MessageFilter;
 import j2ee.ourteam.models.message.UpdateMessageDTO;
 import j2ee.ourteam.models.messagereaction.CreateMessageReactionDTO;
+import j2ee.ourteam.models.page.PageResponse;
 import j2ee.ourteam.services.message.IMessageService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -35,11 +39,6 @@ public class MessageController {
     return ResponseEntity.ok(messageService.create(messageDTO));
   }
 
-  @GetMapping("/{conversationId}")
-  public String getListMessages(@PathVariable String conversationId) {
-    return new String();
-  }
-
   @PatchMapping("/{id}")
   public ResponseEntity<MessageDTO> editMessage(@PathVariable UUID id,
       @RequestBody @Valid UpdateMessageDTO messageDTO) {
@@ -47,8 +46,15 @@ public class MessageController {
   }
 
   @DeleteMapping("/{id}")
-  public String deleteMessage(@PathVariable UUID id) {
-    return new String();
+  public ResponseEntity<MessageDTO> deleteSoftMessage(@PathVariable UUID id) {
+    return ResponseEntity.ok(messageService.softDelete(id));
+  }
+
+  @GetMapping
+  public ResponseEntity<PageResponse<MessageDTO>> getMessages(@ModelAttribute MessageFilter filter) {
+    Page<MessageDTO> page = messageService.findAllPaged(filter);
+    return ResponseEntity.ok(PageResponse.from(page));
+
   }
 
   @PostMapping("/{id} / reactions")
