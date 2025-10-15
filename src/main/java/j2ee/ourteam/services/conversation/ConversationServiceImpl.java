@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import j2ee.ourteam.models.conversation.ConversationDTO;
+import j2ee.ourteam.models.conversation.CreateConversationDTO;
 import org.springframework.stereotype.Service;
 
 import j2ee.ourteam.entities.Conversation;
@@ -12,36 +14,28 @@ import j2ee.ourteam.repositories.ConversationRepository;
 @Service
 public class ConversationServiceImpl implements IConversationService {
 
-  // private final ConversationRepository conversationRepository;
+    @Override
+    public List<ConversationDTO> findAll() {
+        return List.of();
+    }
 
-  @Override
-  public List<Object> findAll() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-  }
+    @Override
+    public Optional<ConversationDTO> findById(UUID uuid) {
+        return Optional.empty();
+    }
 
-  @Override
-  public Optional<Object> findById(UUID id) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'findById'");
-  }
+    @Override
+    public ConversationDTO create(CreateConversationDTO dto) {
+        return null;
+    }
 
-  @Override
-  public Object create(Object dto) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'create'");
-  }
+    @Override
+    public ConversationDTO update(UUID uuid, CreateConversationDTO dto) {
+        return null;
+    }
 
-  @Override
-  public Object update(UUID id, Object dto) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'update'");
-  }
+    @Override
+    public void deleteById(UUID uuid) {
 
-  @Override
-  public void deleteById(UUID id) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
-  }
-
+    }
 }
