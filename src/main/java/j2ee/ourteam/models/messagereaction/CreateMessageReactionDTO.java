@@ -14,9 +14,6 @@ import jakarta.validation.constraints.NotBlank;
 @Builder
 public class CreateMessageReactionDTO {
   @org.hibernate.validator.constraints.UUID
-  private UUID messageId;
-
-  @org.hibernate.validator.constraints.UUID
   private UUID userId;
 
   @NotBlank(message = "Emoji isn't empty")

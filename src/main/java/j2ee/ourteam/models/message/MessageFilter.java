@@ -3,7 +3,6 @@ package j2ee.ourteam.models.message;
 import java.util.UUID;
 
 import j2ee.ourteam.models.page.PageFilter;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,8 +20,8 @@ public class MessageFilter extends PageFilter {
   private String keyword;
 
   @org.hibernate.validator.constraints.UUID
-  private UUID conversationId; // lọc theo hội thoại
+  private UUID conversationId;
 
   @org.hibernate.validator.constraints.UUID
-  private UUID senderId; // lọc theo người gửi
+  private UUID senderId;
 }

@@ -1,5 +1,6 @@
 package j2ee.ourteam.services.message;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,6 +15,10 @@ import org.springframework.stereotype.Service;
 
 import j2ee.ourteam.entities.Conversation;
 import j2ee.ourteam.entities.Message;
+import j2ee.ourteam.entities.MessageReaction;
+import j2ee.ourteam.entities.MessageReactionId;
+import j2ee.ourteam.entities.MessageRead;
+import j2ee.ourteam.entities.MessageReadId;
 import j2ee.ourteam.entities.User;
 import j2ee.ourteam.mapping.MessageMapper;
 import j2ee.ourteam.models.message.CreateMessageDTO;
@@ -21,7 +26,12 @@ import j2ee.ourteam.models.message.MessageDTO;
 import j2ee.ourteam.models.message.MessageFilter;
 import j2ee.ourteam.models.message.MessageSpecification;
 import j2ee.ourteam.models.message.UpdateMessageDTO;
+import j2ee.ourteam.models.messagereaction.CreateMessageReactionDTO;
+import j2ee.ourteam.models.messagereaction.MessageReactionDTO;
+import j2ee.ourteam.models.messageread.MessageReadDTO;
 import j2ee.ourteam.repositories.ConversationRepository;
+import j2ee.ourteam.repositories.MessageReactionRepository;
+import j2ee.ourteam.repositories.MessageReadRepository;
 import j2ee.ourteam.repositories.MessageRepository;
 import j2ee.ourteam.repositories.UserRepository;
 import lombok.AllArgsConstructor;
@@ -30,6 +40,8 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class MessageServiceImpl implements IMessageService {
   private final MessageRepository messageRepository;
+  private final MessageReactionRepository messageReactionRepository;
+  private final MessageReadRepository messageReadRepository;
   private final ConversationRepository conversationRepository;
   private final UserRepository userRepository;
 
@@ -148,8 +160,103 @@ public class MessageServiceImpl implements IMessageService {
 
   @Override
   public List<MessageDTO> findAll() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'findAll'");
+    try {
+
+      return messageRepository.findAll().stream().map(messageMapper::toDto).toList();
+
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to findById messge" + e.getMessage(), e);
+    }
+  }
+
+  @Override
+  public void addReaction(UUID id, CreateMessageReactionDTO messageReactionDTO) {
+    try {
+      Message message = messageRepository.findById(id)
+          .orElseThrow(() -> new RuntimeException("Message not found"));
+
+      User user = userRepository.findById(messageReactionDTO.getUserId())
+          .orElseThrow(() -> new RuntimeException("User not found"));
+
+      MessageReactionId key = new MessageReactionId(id, messageReactionDTO.getUserId(), messageReactionDTO.getEmoji());
+
+      if (messageReactionRepository.existsById(key)) {
+        throw new RuntimeException("Reaction already exists");
+      }
+
+      MessageReaction reaction = MessageReaction.builder()
+          .id(key)
+          .message(message)
+          .user(user)
+          .build();
+
+      messageReactionRepository.save(reaction);
+
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to add reaction message" + e.getMessage(), e);
+    }
+  }
+
+  @Override
+  public void deleteReaction(UUID id, UUID userId, String emoji) {
+    try {
+      MessageReactionId key = new MessageReactionId(id, userId, emoji);
+
+      if (messageReactionRepository.existsById(key)) {
+        throw new RuntimeException("Reaction not found");
+      }
+
+      messageReactionRepository.deleteById(key);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to delete reaction message" + e.getMessage(), e);
+    }
+  }
+
+  @Override
+  public void markAsRead(UUID id, UUID userId) {
+    try {
+      Message message = messageRepository.findById(id)
+          .orElseThrow(() -> new RuntimeException("Message not found"));
+
+      User user = userRepository.findById(userId)
+          .orElseThrow(() -> new RuntimeException("User not found"));
+
+      MessageReadId key = new MessageReadId(id, userId);
+
+      if (messageReadRepository.existsById(key)) {
+        throw new RuntimeException("Read already exist");
+      }
+
+      MessageRead messageRead = MessageRead
+          .builder()
+          .id(key)
+          .message(message)
+          .user(user)
+          .build();
+
+      messageReadRepository.save(messageRead);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to mark As Read Message" + e.getMessage(), e);
+    }
+
+  }
+
+  @Override
+  public Page<MessageReadDTO> getReadStatus(UUID id, Integer page, Integer limit) {
+    try {
+      Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("readAt").descending());
+
+      return messageReadRepository.findByMessageId(id, pageable)
+          .map(read -> MessageReadDTO.builder()
+              .userId(read.getUser().getId())
+              .username(read.getUser().getUserName())
+              .username(read.getUser().getAvatarS3Key())
+              .readAt(read.getReadAt())
+              .build());
+
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to get Read Status message" + e.getMessage(), e);
+    }
   }
 
 }
