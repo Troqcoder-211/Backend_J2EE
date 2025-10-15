@@ -18,10 +18,10 @@ public class CreateConversationDTO {
     @UUID
     private UUID conversationId;
 
-    @NotBlank(message = "Conversation name isn't empty.")
+    @NotBlank(message = "Conversation name is not empty.")
     private String name;
 
-    @NotBlank(message = "Conversation type isn't empty.")
+    @NotBlank(message = "Conversation type is not empty.")
     private Conversation.ConversationType conversationType;
 
 
