@@ -2,6 +2,7 @@ package j2ee.ourteam.controllers;
 
 import java.util.UUID;
 
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,39 +14,45 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import j2ee.ourteam.models.attachment.AttachmentDTO;
-import j2ee.ourteam.models.attachment.AttachmentDownloadDTO;
-import org.springframework.core.io.Resource;
 
 @RestController
 @RequestMapping("attachments")
 public class AttachmentController {
-  // @PostMapping("/upload")
-  // public ResponseEntity<AttachmentDTO> uploadFile(
-  // @RequestParam("file") MultipartFile file,
-  // @RequestParam(value = "conversationId", required = false) UUID conversationId
-  // // , @AuthenticationPrincipal CustomUserDetails currentUser
-  // ) {
-  // // AttachmentDTO attachment = attachmentService.uploadFile(file,
-  // // currentUser.getId(), conversationId);
-  // // return ResponseEntity.ok(attachment);
-  // return ResponseEntity.ok();
-  // }
 
-  // @GetMapping("/{id}/download")
-  // public ResponseEntity<Resource> downloadFile(@PathVariable UUID id) {
-  // AttachmentDownloadDTO response = attachmentService.downloadFile(id);
+  @PostMapping("/upload")
+  public ResponseEntity<AttachmentDTO> uploadFile(
+      @RequestParam("file") MultipartFile file,
+      @RequestParam(value = "conversationId", required = false) UUID conversationId) {
+    // AttachmentDTO attachment = attachmentService.uploadFile(file,
+    // currentUser.getId(), conversationId);
+    // return ResponseEntity.ok(attachment);
+    return ResponseEntity.ok(new AttachmentDTO());
+  }
 
-  // return ResponseEntity.ok()
-  // .contentType(MediaType.parseMediaType(response.getMimeType()))
-  // .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" +
-  // response.getFilename() + "\"")
-  // .body(response.getResource());
-  // }
+  @GetMapping("/{id}")
+  public String getMetaDataFile(@PathVariable UUID id) {
+    return new String();
+  }
 
-  // @DeleteMapping("/{id}")
-  // public ResponseEntity<Void> deleteFile(@PathVariable UUID id) {
-  // attachmentService.deleteAttachment(id);
-  // return ResponseEntity.noContent().build();
-  // }
+  @GetMapping("/{id}/download")
+  public ResponseEntity<Resource> downloadFile(@PathVariable UUID id) {
+    // AttachmentDownloadDTO response = attachmentService.downloadFile(id);
+
+    // return ResponseEntity.ok(new Resource() {
+
+    // }));
+    // .contentType(MediaType.parseMediaType(response.getMimeType()))
+    // .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" +
+    // response.getFilename() + "\"")
+    // .body(response.getResource());
+    return null;
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deleteFile(@PathVariable UUID id) {
+    // attachmentService.deleteAttachment(id);
+    return ResponseEntity.noContent().build();
+
+  }
 
 }

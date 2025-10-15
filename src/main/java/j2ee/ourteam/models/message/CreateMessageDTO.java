@@ -1,6 +1,6 @@
 package j2ee.ourteam.models.message;
 
-import org.hibernate.validator.constraints.UUID;
+import java.util.UUID;
 
 import j2ee.ourteam.enums.message.MessageTypeEnum;
 import j2ee.ourteam.validators.ValidUUID;
@@ -14,10 +14,10 @@ import lombok.Data;
 @Builder
 public class CreateMessageDTO {
 
-  @UUID
+  @org.hibernate.validator.constraints.UUID
   private UUID conversationId;
 
-  @UUID
+  @org.hibernate.validator.constraints.UUID
   private UUID senderId;
 
   @NotBlank(message = "Content isn't empty")
