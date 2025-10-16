@@ -1,7 +1,5 @@
 package j2ee.ourteam.models.user;
 
-import java.sql.Date;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,12 +13,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
-public class UserDTO {
-  private String Id;
-
-  private String fulName;
-
-  private String email;
-
-  private Date dateOfBirth;
+public class UserResponseDTO {
+    private String id;
+    private String username;
+    private String email;
+    private String displayName;
+    private String avatarS3Key;
+    private boolean isDisabled;
 }

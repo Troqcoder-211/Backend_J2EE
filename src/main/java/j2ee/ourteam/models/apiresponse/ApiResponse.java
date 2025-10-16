@@ -14,9 +14,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 public class ApiResponse<T> {
-    private boolean success;
+    private int statusCode;
     private String message;
     private T data;
-    private int statusCode;
-    private long timestamp;
 }

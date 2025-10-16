@@ -1,21 +1,24 @@
 package j2ee.ourteam.services.auth;
 
+import j2ee.ourteam.models.apiresponse.ApiResponse;
 import j2ee.ourteam.models.auth.*;
 
 public interface IAuthService {
-    public JwtResponseDTO login(LoginRequestDTO loginRequestDTO);
 
-    public JwtResponseDTO refreshToken(RefreshRequestDTO refreshTokenRequestDTO);
+    public ApiResponse<?> login(LoginRequestDTO loginRequestDTO);
 
-    public void register(RegisterRequestDTO registerRequestDTO);
+    public ApiResponse<?> refreshToken(RefreshRequestDTO refreshTokenRequestDTO);
 
-    public void logout(LogoutRequestDTO logoutRequestDTO);
+    public ApiResponse<?> register(RegisterRequestDTO registerRequestDTO);
 
-    public void changePassword(ChangePasswordRequestDTO changePasswordRequestDTO);
+    public ApiResponse<?> logout(LogoutRequestDTO logoutRequestDTO);
 
-    public void forgotPassword(ForgotPasswordRequestDTO forgotPasswordRequestDTO);
+    public ApiResponse<?> changePassword(ChangePasswordRequestDTO changePasswordRequestDTO);
+
+    public ApiResponse<?> forgotPassword(ForgotPasswordRequestDTO forgotPasswordRequestDTO);
+
     public Object getCurrentUser(String username);
-    public void changePassword(String username, ChangePasswordRequestDTO request);
-    
+
+    public ApiResponse<?> changePassword(String username, ChangePasswordRequestDTO request);
 
 }

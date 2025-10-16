@@ -16,4 +16,5 @@ import lombok.Setter;
 public class UpdateUserDTO {
     private String email;
     private String displayName;
+    private String avatarS3Key;
 }
