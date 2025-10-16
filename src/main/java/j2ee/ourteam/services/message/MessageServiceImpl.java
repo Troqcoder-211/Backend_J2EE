@@ -1,18 +1,18 @@
 package j2ee.ourteam.services.message;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import javax.management.RuntimeErrorException;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import j2ee.ourteam.entities.Attachment;
 import j2ee.ourteam.entities.Conversation;
 import j2ee.ourteam.entities.Message;
 import j2ee.ourteam.entities.MessageReaction;
@@ -20,6 +20,7 @@ import j2ee.ourteam.entities.MessageReactionId;
 import j2ee.ourteam.entities.MessageRead;
 import j2ee.ourteam.entities.MessageReadId;
 import j2ee.ourteam.entities.User;
+import j2ee.ourteam.enums.message.MessageTypeEnum;
 import j2ee.ourteam.mapping.MessageMapper;
 import j2ee.ourteam.models.message.CreateMessageDTO;
 import j2ee.ourteam.models.message.MessageDTO;
@@ -27,8 +28,8 @@ import j2ee.ourteam.models.message.MessageFilter;
 import j2ee.ourteam.models.message.MessageSpecification;
 import j2ee.ourteam.models.message.UpdateMessageDTO;
 import j2ee.ourteam.models.messagereaction.CreateMessageReactionDTO;
-import j2ee.ourteam.models.messagereaction.MessageReactionDTO;
 import j2ee.ourteam.models.messageread.MessageReadDTO;
+import j2ee.ourteam.repositories.AttachmentRepository;
 import j2ee.ourteam.repositories.ConversationRepository;
 import j2ee.ourteam.repositories.MessageReactionRepository;
 import j2ee.ourteam.repositories.MessageReadRepository;
@@ -43,9 +44,13 @@ public class MessageServiceImpl implements IMessageService {
   private final MessageReactionRepository messageReactionRepository;
   private final MessageReadRepository messageReadRepository;
   private final ConversationRepository conversationRepository;
+  private final AttachmentRepository attachmentRepository;
   private final UserRepository userRepository;
 
   private final MessageMapper messageMapper;
+
+  private static final String ERROR_EMPTY_CONTENT = "Content cannot be empty for text messages";
+  private static final String ERROR_EMPTY_ATTACHMENTS = "Attachments are required for non-text messages";
 
   @Override
   public MessageDTO create(Object dto) {
@@ -53,31 +58,63 @@ public class MessageServiceImpl implements IMessageService {
       throw new IllegalArgumentException("Invalid DTO type for create");
     }
 
-    try {
-      Message message = messageMapper.toEntity(createDto);
+    validateMessageInput(createDto);
 
-      Conversation conversation = conversationRepository.findById(createDto.getConversationId())
-          .orElseThrow(() -> new RuntimeException("Conversation not found"));
+    Conversation conversation = findConversation(createDto.getConversationId());
+    User sender = findSender(createDto.getSenderId());
+    Message replyTo = findReplyMessage(createDto.getReplyTo());
 
-      message.setConversation(conversation);
+    Message message = messageMapper.toEntity(createDto);
+    message.setConversation(conversation);
+    message.setSender(sender);
+    message.setReplyTo(replyTo);
 
-      User sender = userRepository.findById(createDto.getSenderId())
-          .orElseThrow(() -> new RuntimeException("Sender not found"));
-      message.setSender(sender);
+    attachFiles(message, createDto.getAttachmentIds());
 
-      if (createDto.getReplyTo() != null) {
-        Message replyTo = messageRepository.findById(createDto.getReplyTo())
-            .orElseThrow(() -> new RuntimeException("Reply message not found"));
-        message.setReplyTo(replyTo);
-      }
+    Message saved = messageRepository.save(message);
 
-      messageRepository.save(message);
+    return messageMapper.toDto(saved);
+  }
 
-      // Save data
-      return messageMapper.toDto(message);
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to create message: " + e.getMessage(), e);
+  private void validateMessageInput(CreateMessageDTO dto) {
+    boolean isText = dto.getMessageType() == MessageTypeEnum.TEXT;
+
+    if (isText && (dto.getContent() == null || dto.getContent().isBlank())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ERROR_EMPTY_CONTENT);
     }
+
+    if (!isText && (dto.getAttachmentIds() == null || dto.getAttachmentIds().isEmpty())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ERROR_EMPTY_ATTACHMENTS);
+    }
+  }
+
+  private Conversation findConversation(UUID conversationId) {
+    return conversationRepository.findById(conversationId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
+  }
+
+  private User findSender(UUID senderId) {
+    return userRepository.findById(senderId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Sender not found"));
+  }
+
+  private Message findReplyMessage(UUID replyToId) {
+    if (replyToId == null)
+      return null;
+    return messageRepository.findById(replyToId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reply message not found"));
+  }
+
+  private void attachFiles(Message message, List<UUID> attachmentIds) {
+    if (attachmentIds == null || attachmentIds.isEmpty())
+      return;
+
+    List<Attachment> attachments = attachmentRepository.findAllById(attachmentIds);
+    if (attachments.size() != attachmentIds.size()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Some attachments not found");
+    }
+
+    message.getAttachments().addAll(attachments);
   }
 
   @Override
@@ -87,7 +124,8 @@ public class MessageServiceImpl implements IMessageService {
     }
 
     try {
-      Message message = messageRepository.findById(id).orElseThrow(() -> new RuntimeException("Message not found"));
+      Message message = messageRepository.findById(id)
+          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
 
       message.setContent(updateDto.getContent());
       message.setEditedAt(updateDto.getEditedAt());
@@ -104,7 +142,7 @@ public class MessageServiceImpl implements IMessageService {
   public MessageDTO softDelete(UUID id) {
     try {
       Message message = messageRepository.findById(id)
-          .orElseThrow(() -> new RuntimeException("Message not found"));
+          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
 
       if (Boolean.TRUE.equals(message.getIsDeleted())) {
         throw new RuntimeException("Message is already deleted");
@@ -121,7 +159,8 @@ public class MessageServiceImpl implements IMessageService {
 
   @Override
   public void deleteById(UUID id) {
-    Message message = messageRepository.findById(id).orElseThrow(() -> new RuntimeException("Message not found"));
+    Message message = messageRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
 
     try {
       messageRepository.delete(message);
@@ -173,10 +212,10 @@ public class MessageServiceImpl implements IMessageService {
   public void addReaction(UUID id, CreateMessageReactionDTO messageReactionDTO) {
     try {
       Message message = messageRepository.findById(id)
-          .orElseThrow(() -> new RuntimeException("Message not found"));
+          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
 
       User user = userRepository.findById(messageReactionDTO.getUserId())
-          .orElseThrow(() -> new RuntimeException("User not found"));
+          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
       MessageReactionId key = new MessageReactionId(id, messageReactionDTO.getUserId(), messageReactionDTO.getEmoji());
 
@@ -202,9 +241,8 @@ public class MessageServiceImpl implements IMessageService {
     try {
       MessageReactionId key = new MessageReactionId(id, userId, emoji);
 
-      if (messageReactionRepository.existsById(key)) {
-        throw new RuntimeException("Reaction not found");
-      }
+      if (messageReactionRepository.existsById(key))
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Reaction not found");
 
       messageReactionRepository.deleteById(key);
     } catch (Exception e) {
@@ -216,10 +254,10 @@ public class MessageServiceImpl implements IMessageService {
   public void markAsRead(UUID id, UUID userId) {
     try {
       Message message = messageRepository.findById(id)
-          .orElseThrow(() -> new RuntimeException("Message not found"));
+          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
 
       User user = userRepository.findById(userId)
-          .orElseThrow(() -> new RuntimeException("User not found"));
+          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
       MessageReadId key = new MessageReadId(id, userId);
 

@@ -40,6 +40,12 @@ public class Attachment {
   @JoinColumn(name = "conversation_id")
   private Conversation conversation;
 
+  @Column(name = "filename")
+  private String filename;
+
+  @Column(name = "mime_type")
+  private String mimeType;
+
   @Column(name = "s3_bucket", nullable = false)
   private String s3Bucket;
 
@@ -48,12 +54,6 @@ public class Attachment {
 
   @Column(name = "thumbnail_s3_key")
   private String thumbnailS3Key;
-
-  @Column(name = "filename")
-  private String filename;
-
-  @Column(name = "mime_type")
-  private String mimeType;
 
   @Column(name = "size_bytes")
   private Long sizeBytes;

@@ -18,10 +18,10 @@ public class AttachmentDTO {
   private UUID conversationId;
   private String filename;
   private String mimeType;
-  private Long sizeBytes;
-  private String checksum;
   private String s3Bucket;
   private String s3Key;
   private String thumbnailS3Key;
+  private Long sizeBytes;
+  private String checksum;
   private LocalDate createdAt;
 }
