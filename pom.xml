@@ -55,7 +55,7 @@
 		  <version>2.25.61</version>
 		</dependency>
 		
-
+		<!-- Security -->
 		<dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-security</artifactId>
@@ -114,7 +114,7 @@
 			<optional>true</optional>
 		</dependency> -->
 
-<!-- Mapper -->
+		<!-- Mapper -->
 		<dependency>
     <groupId>org.modelmapper</groupId>
     <artifactId>modelmapper</artifactId>
@@ -122,18 +122,17 @@
     </dependency>
 
 		<dependency>
-    <groupId>org.mapstruct</groupId>
-    <artifactId>mapstruct</artifactId>
-    <version>1.4.2.Final</version>
-</dependency>
-<dependency>
-    <groupId>org.mapstruct</groupId>
-    <artifactId>mapstruct-processor</artifactId>
-    <version>1.4.2.Final</version>
-    <scope>provided</scope>
-</dependency>
+    	<groupId>org.mapstruct</groupId>
+    	<artifactId>mapstruct</artifactId>
+    	<version>1.4.2.Final</version>
+		</dependency>
 
-
+		<dependency>
+		    <groupId>org.mapstruct</groupId>
+		    <artifactId>mapstruct-processor</artifactId>
+		    <version>1.4.2.Final</version>
+		    <scope>provided</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>

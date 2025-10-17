@@ -3,7 +3,6 @@ package j2ee.ourteam.controllers;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import j2ee.ourteam.entities.Notification;
 import j2ee.ourteam.models.notification.CreateNotificationDTO;
 import j2ee.ourteam.models.notification.NotificationDTO;
 import j2ee.ourteam.models.page.PageFilter;

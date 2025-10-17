@@ -1,6 +1,6 @@
 package j2ee.ourteam.models.messagereaction;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -20,5 +20,5 @@ public class CreateMessageReactionDTO {
   private String emoji;
 
   @Builder.Default
-  private LocalDate createdAt = LocalDate.now();
+  private LocalDateTime createdAt = LocalDateTime.now();
 }

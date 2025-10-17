@@ -1,6 +1,6 @@
 package j2ee.ourteam.entities;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,10 +30,10 @@ public class Device {
   private String pushToken;
 
   @Column(name = "last_seen_at")
-  private LocalDate lastSeenAt;
+  private LocalDateTime lastSeenAt;
 
   @Column(name = "created_at")
-  private LocalDate createdAt;
+  private LocalDateTime createdAt;
 
   // ========================
   // 🔗 RELATIONSHIPS
@@ -47,7 +47,7 @@ public class Device {
 
   @PrePersist
   protected void onCreate() {
-    this.createdAt = LocalDate.now();
-    this.lastSeenAt = LocalDate.now();
+    this.createdAt = LocalDateTime.now();
+    this.lastSeenAt = LocalDateTime.now();
   }
 }

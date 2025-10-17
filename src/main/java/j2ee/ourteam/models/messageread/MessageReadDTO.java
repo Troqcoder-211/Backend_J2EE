@@ -1,6 +1,6 @@
 package j2ee.ourteam.models.messageread;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -16,5 +16,5 @@ public class MessageReadDTO {
   private UUID messageId;
   private UUID userId;
   private String username;
-  private LocalDate readAt;
+  private LocalDateTime readAt;
 }

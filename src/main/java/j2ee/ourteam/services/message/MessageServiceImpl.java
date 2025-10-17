@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import j2ee.ourteam.controllers.WebSocketController;
 import j2ee.ourteam.entities.Attachment;
 import j2ee.ourteam.entities.Conversation;
 import j2ee.ourteam.entities.Message;
@@ -49,6 +51,9 @@ public class MessageServiceImpl implements IMessageService {
 
   private final MessageMapper messageMapper;
 
+  @Autowired
+  private WebSocketController webSocketController;
+
   private static final String ERROR_EMPTY_CONTENT = "Content cannot be empty for text messages";
   private static final String ERROR_EMPTY_ATTACHMENTS = "Attachments are required for non-text messages";
 
@@ -72,6 +77,8 @@ public class MessageServiceImpl implements IMessageService {
     attachFiles(message, createDto.getAttachmentIds());
 
     Message saved = messageRepository.save(message);
+
+    webSocketController.pushMessage(messageMapper.toDto(saved));
 
     return messageMapper.toDto(saved);
   }

@@ -1,10 +1,11 @@
 package j2ee.ourteam.services.notification;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import j2ee.ourteam.controllers.WebSocketController;
 import j2ee.ourteam.entities.Device;
 import j2ee.ourteam.entities.Notification;
 import j2ee.ourteam.entities.User;
@@ -33,6 +35,9 @@ public class NotificationServiceImpl implements INotificationService {
   private final DeviceRepository deviceRepository;
 
   private final NotificationMapper notificationMapper;
+
+  @Autowired
+  private WebSocketController webSocketController;
 
   @Override
   public NotificationDTO create(Object dto) {
@@ -57,6 +62,8 @@ public class NotificationServiceImpl implements INotificationService {
       // Tuỳ chọn: đẩy realtime
       // sendToWebSocket(notification);
       // sendPushNotification(notification);
+
+      webSocketController.pushNotification(notificationMapper.toDto(notification));
 
       return notificationMapper.toDto(notification);
     } catch (Exception e) {
@@ -101,7 +108,7 @@ public class NotificationServiceImpl implements INotificationService {
 
     try {
       notification.setIsDelivered(true);
-      notification.setDeliveredAt(LocalDate.now());
+      notification.setDeliveredAt(LocalDateTime.now());
 
       notificationRepository.save(notification);
 

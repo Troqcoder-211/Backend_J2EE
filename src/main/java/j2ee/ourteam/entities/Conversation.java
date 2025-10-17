@@ -1,6 +1,6 @@
 package j2ee.ourteam.entities;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,7 +40,7 @@ public class Conversation {
   private User created_by;
 
   @Column(name = "created_at")
-  private LocalDate createdAt;
+  private LocalDateTime createdAt;
 
   @Column(name = "is_archived")
   private Boolean isArchived;
@@ -56,7 +56,7 @@ public class Conversation {
 
   @PrePersist
   protected void onCreate() {
-    this.createdAt = LocalDate.now();
+    this.createdAt = LocalDateTime.now();
   }
 
   public enum ConversationType {

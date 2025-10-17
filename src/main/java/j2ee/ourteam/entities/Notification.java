@@ -2,7 +2,7 @@ package j2ee.ourteam.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -39,7 +39,7 @@ public class Notification {
   private Boolean isDelivered = false;
 
   @Builder.Default
-  private LocalDate deliveredAt = LocalDate.now();
+  private LocalDateTime deliveredAt = LocalDateTime.now();
 
   @Builder.Default
   @Column(name = "is_read", nullable = false)
@@ -47,7 +47,7 @@ public class Notification {
 
   @Builder.Default
   @Column(name = "created_at", nullable = false)
-  private LocalDate createdAt = LocalDate.now();
+  private LocalDateTime createdAt = LocalDateTime.now();
 
   public enum NotificationType {
     MESSAGE,

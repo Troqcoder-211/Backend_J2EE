@@ -1,6 +1,6 @@
 package j2ee.ourteam.models.message;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,8 +18,8 @@ public class MessageDTO {
   private UUID id;
   private String content;
   private MessageTypeEnum type;
-  private LocalDate createdAt;
-  private LocalDate editedAt;
+  private LocalDateTime createdAt;
+  private LocalDateTime editedAt;
   private Boolean isDeleted;
   private UUID senderId;
   private UUID conversationId;

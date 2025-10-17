@@ -1,6 +1,6 @@
 package j2ee.ourteam.models.messageread;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -17,5 +17,5 @@ public class CreateMessageReadDTO {
   private UUID messageId;
 
   @Builder.Default
-  private LocalDate readAt = LocalDate.now();
+  private LocalDateTime readAt = LocalDateTime.now();
 }

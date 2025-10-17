@@ -1,6 +1,6 @@
 package j2ee.ourteam.entities;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
@@ -39,5 +39,5 @@ public class MessageReaction {
 
   @Builder.Default
   @Column(name = "reacted_At", nullable = false)
-  private LocalDate reactedAt = LocalDate.now();
+  private LocalDateTime reactedAt = LocalDateTime.now();
 }

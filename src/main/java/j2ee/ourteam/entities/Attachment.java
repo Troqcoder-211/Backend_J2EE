@@ -1,6 +1,6 @@
 package j2ee.ourteam.entities;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -63,7 +63,7 @@ public class Attachment {
 
   @Builder.Default
   @Column(name = "created_at", nullable = false)
-  private LocalDate createdAt = LocalDate.now();
+  private LocalDateTime createdAt = LocalDateTime.now();
 
   @Builder.Default
   @ManyToMany(mappedBy = "attachments")
