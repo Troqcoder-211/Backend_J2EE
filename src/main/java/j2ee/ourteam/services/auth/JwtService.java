@@ -4,18 +4,20 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import javax.crypto.SecretKey;
-
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
+
+import javax.crypto.SecretKey;
 
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "YOUR_BASE64_SECRET_KEY"; // nên đủ 256-bit
+    // ⚠️ KHÔNG nên hardcode trong production, chỉ dùng demo
+    private static final String SECRET_KEY = "7E3A7D3F7C1B4A0C4E2F1D9A8E5C2B4A7E3A7D3F7C1B4A0C4E2F1D9A8E5C2B4A";
 
     private SecretKey getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
@@ -23,24 +25,43 @@ public class JwtService {
     }
 
     public String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();
+        return extractClaim(token, claims -> claims.getSubject());
     }
 
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser()
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = Jwts.parser()
                 .verifyWith(getSignInKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+        return claimsResolver.apply(claims);
     }
 
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+    public String generateAccessToken(UserDetails userDetails) {
+        return generateAccessToken(Map.of(), userDetails);
+    }
+
+    public String generateAccessToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
                 .claims(extraClaims)
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10h
-                .signWith(getSignInKey())
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24h
+                .signWith(getSignInKey(), Jwts.SIG.HS256)
+                .compact();
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return generateRefreshToken(Map.of(), userDetails);
+    }
+
+    public String generateRefreshToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        return Jwts.builder()
+                .claims(extraClaims)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 30)) // 30 ngày
+                .signWith(getSignInKey(), Jwts.SIG.HS256)
                 .compact();
     }
 
@@ -50,6 +71,7 @@ public class JwtService {
     }
 
     private boolean isTokenExpired(String token) {
-        return extractAllClaims(token).getExpiration().before(new Date());
+        Date expiration = extractClaim(token, Claims::getExpiration);
+        return expiration.before(new Date());
     }
 }

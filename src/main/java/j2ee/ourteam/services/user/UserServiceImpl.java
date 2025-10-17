@@ -48,10 +48,6 @@ public class UserServiceImpl implements IUserService {
     throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
   }
 
-  @Override
-  public boolean existsByUsername(String username) {
-    return userRepository.existsByUsername(username);
-  }
   // private final UserRepository userRepository;
 
   // public UserServiceImpl(UserRepository userRepository) {

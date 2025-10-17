@@ -4,6 +4,7 @@ import org.mapstruct.Mapper;
 
 import j2ee.ourteam.entities.User;
 import j2ee.ourteam.models.auth.RegisterRequestDTO;
+import j2ee.ourteam.models.user.UserResponseDTO;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
