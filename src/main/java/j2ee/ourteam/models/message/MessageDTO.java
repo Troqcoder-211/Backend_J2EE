@@ -3,6 +3,8 @@ package j2ee.ourteam.models.message;
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
+
+import j2ee.ourteam.enums.message.MessageTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +17,7 @@ import lombok.NoArgsConstructor;
 public class MessageDTO {
   private UUID id;
   private String content;
-  private String type;
+  private MessageTypeEnum type;
   private LocalDate createdAt;
   private LocalDate editedAt;
   private Boolean isDeleted;

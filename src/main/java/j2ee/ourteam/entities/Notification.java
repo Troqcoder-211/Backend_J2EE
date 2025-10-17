@@ -2,7 +2,6 @@ package j2ee.ourteam.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -27,6 +26,7 @@ public class Notification {
   private Device device;
 
   // Loại thông báo (ví dụ: MESSAGE, REACTION, SYSTEM, INVITE, v.v.)
+  @Enumerated(EnumType.STRING)
   private NotificationType type;
 
   // JSON dữ liệu (Spring sẽ map thành chuỗi)
@@ -38,7 +38,8 @@ public class Notification {
   @Column(name = "is_delivered", nullable = false)
   private Boolean isDelivered = false;
 
-  private Instant deliveredAt;
+  @Builder.Default
+  private LocalDate deliveredAt = LocalDate.now();
 
   @Builder.Default
   @Column(name = "is_read", nullable = false)

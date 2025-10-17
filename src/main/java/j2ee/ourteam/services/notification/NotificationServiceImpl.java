@@ -1,45 +1,146 @@
 package j2ee.ourteam.services.notification;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import j2ee.ourteam.entities.Device;
 import j2ee.ourteam.entities.Notification;
+import j2ee.ourteam.entities.User;
+import j2ee.ourteam.mapping.NotificationMapper;
+import j2ee.ourteam.models.notification.CreateNotificationDTO;
+import j2ee.ourteam.models.notification.NotificationDTO;
+import j2ee.ourteam.models.page.PageFilter;
+import j2ee.ourteam.repositories.DeviceRepository;
 import j2ee.ourteam.repositories.NotificationRepository;
+import j2ee.ourteam.repositories.UserRepository;
+import lombok.AllArgsConstructor;
 
 @Service
+@AllArgsConstructor
 public class NotificationServiceImpl implements INotificationService {
+  private final NotificationRepository notificationRepository;
+  private final UserRepository userRepository;
+  private final DeviceRepository deviceRepository;
+
+  private final NotificationMapper notificationMapper;
 
   @Override
-  public List<Object> findAll() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'findAll'");
+  public NotificationDTO create(Object dto) {
+    if (!(dto instanceof CreateNotificationDTO createDto)) {
+      throw new IllegalArgumentException("Invalid DTO type for create");
+    }
+
+    User user = userRepository.findById(createDto.getUserId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    Device device = deviceRepository.findById(createDto.getDeviceId())
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found"));
+
+    try {
+      Notification notification = notificationMapper.toEntity(createDto);
+
+      notification.setUser(user);
+      notification.setDevice(device);
+
+      notificationRepository.save(notification);
+
+      // Tuỳ chọn: đẩy realtime
+      // sendToWebSocket(notification);
+      // sendPushNotification(notification);
+
+      return notificationMapper.toDto(notification);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to create notification" + e.getMessage(), e);
+    }
   }
 
   @Override
-  public Optional<Object> findById(UUID id) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'findById'");
+  public Page<NotificationDTO> getUserNotifications(UUID userId, PageFilter pageFilter) {
+    try {
+      Pageable pageable = PageRequest.of(
+          pageFilter.getPage() - 1,
+          pageFilter.getLimit(),
+          Sort.Direction.fromString(pageFilter.getSortOrder()),
+          pageFilter.getSortBy());
+      return notificationRepository.findAll(pageable).map(notificationMapper::toDto);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to get User Notification" + e.getMessage(), e);
+    }
   }
 
   @Override
-  public Object create(Object dto) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'create'");
+  public NotificationDTO markAsRead(UUID id) {
+    Notification notification = notificationRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification not found"));
+
+    try {
+      notification.setIsRead(true);
+
+      notificationRepository.save(notification);
+
+      return notificationMapper.toDto(notification);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to mark As Read" + e.getMessage(), e);
+    }
   }
 
   @Override
-  public Object update(UUID id, Object dto) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'update'");
+  public NotificationDTO markAsDelivered(UUID id) {
+    Notification notification = notificationRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification not found"));
+
+    try {
+      notification.setIsDelivered(true);
+      notification.setDeliveredAt(LocalDate.now());
+
+      notificationRepository.save(notification);
+
+      return notificationMapper.toDto(notification);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to mark As Delivered" + e.getMessage(), e);
+    }
   }
 
   @Override
   public void deleteById(UUID id) {
+    Notification notification = notificationRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification not found"));
+
+    try {
+      notificationRepository.delete(notification);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to delete Notification" + e.getMessage(), e);
+    }
+  }
+
+  // Unavailable
+  @Override
+  public List<NotificationDTO> findAll() {
+    throw new UnsupportedOperationException("Unimplemented method 'findAll'");
+  }
+
+  // Unavailable
+  @Override
+  public Optional<NotificationDTO> findById(UUID id) {
     // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
+    throw new UnsupportedOperationException("Unimplemented method 'findById'");
+  }
+
+  // Unavailable
+  @Override
+  public NotificationDTO update(UUID id, Object dto) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'update'");
   }
 
 }
