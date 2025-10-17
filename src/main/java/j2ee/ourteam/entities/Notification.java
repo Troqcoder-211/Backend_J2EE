@@ -27,7 +27,7 @@ public class Notification {
   private Device device;
 
   // Loại thông báo (ví dụ: MESSAGE, REACTION, SYSTEM, INVITE, v.v.)
-  private String type;
+  private NotificationType type;
 
   // JSON dữ liệu (Spring sẽ map thành chuỗi)
   @Lob
@@ -47,4 +47,11 @@ public class Notification {
   @Builder.Default
   @Column(name = "created_at", nullable = false)
   private LocalDate createdAt = LocalDate.now();
+
+  public enum NotificationType {
+    MESSAGE,
+    REACTION,
+    SYSTEM,
+    INVITE,
+  }
 }
