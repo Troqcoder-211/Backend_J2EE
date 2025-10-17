@@ -1,6 +1,9 @@
 package j2ee.ourteam.mapping;
 
+import j2ee.ourteam.models.conversation.ArchivedConversationDTO;
 import j2ee.ourteam.models.conversation.ConversationDTO;
+import j2ee.ourteam.models.conversation.CreateConversationDTO;
+import j2ee.ourteam.models.conversation.UpdateConversationDTO;
 import org.mapstruct.*;
 
 import j2ee.ourteam.entities.Conversation;
@@ -8,31 +11,37 @@ import j2ee.ourteam.entities.Conversation;
 @Mapper(componentModel = "spring")
 public interface ConversationMapper {
 
-    //entity->dto
-    @Mapping(source = "id", target = "id")
-    @Mapping(source = "conversationType", target = "conversationType")
-    @Mapping(source = "name", target = "name")
-    @Mapping(source = "avatarS3Key", target = "avatarS3Key")
-    @Mapping(source = "createdAt", target = "createdAt")
-    @Mapping(source = "createdBy", target = "createdBy")
-    @Mapping(source = "isArchived", target = "isArchived")
     ConversationDTO toDto(Conversation entity);
 
-    //dto->entity
-    @Mapping(source = "id", target = "id")
-    @Mapping(source = "conversationType", target = "conversationType")
-    @Mapping(source = "name", target = "name")
-    @Mapping(source = "avatarS3Key", target = "avatarS3Key")
-    @Mapping(source = "createdAt", target = "createdAt")
-    @Mapping(source = "createdBy", target = "createdBy")
-    @Mapping(source = "isArchived", target = "isArchived")
-    Conversation toEntity(ConversationDTO dto);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "isArchived", ignore = true)
+    @Mapping(target = "members", ignore = true)
+    @Mapping(target = "messages", ignore = true)
+    Conversation toEntity(CreateConversationDTO dto);
 
+
+    //Update
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(source = "conversationType", target = "conversationType")
-    @Mapping(source = "avatarS3Key", target = "avatarS3Key")
-    @Mapping(source = "createdAt", target = "createdAt")
-    @Mapping(source = "createdBy", target = "createdBy")
-    @Mapping(source = "isArchived", target = "isArchived")
-    void updateEntityFromDto(ConversationDTO dto, @MappingTarget Conversation entity);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "conversationType", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "isArchived", ignore = true)
+    @Mapping(target = "members", ignore = true)
+    @Mapping(target = "messages", ignore = true)
+    void updateEntityFromDto(UpdateConversationDTO dto, @MappingTarget Conversation entity);
+
+    //isArchived
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "name", ignore = true)
+    @Mapping(target = "avatarS3Key", ignore = true)
+    @Mapping(target = "conversationType", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "members", ignore = true)
+    @Mapping(target = "messages", ignore = true)
+    void updateArchivedFromDto(ArchivedConversationDTO dto, @MappingTarget Conversation entity);
 }

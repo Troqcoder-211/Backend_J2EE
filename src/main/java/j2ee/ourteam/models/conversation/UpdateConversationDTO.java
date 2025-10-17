@@ -4,13 +4,16 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.hibernate.validator.constraints.UUID;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class UpdateConversationDTO {
-    @UUID
+    @org.hibernate.validator.constraints.UUID
     private UUID id;
 
     @NotBlank(message = "Conversation name isn't empty.")

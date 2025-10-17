@@ -1,10 +1,20 @@
 package j2ee.ourteam.models.conversation;
 
-import org.hibernate.validator.constraints.UUID;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class ArchivedConversationDTO {
 
-    @UUID
+    @org.hibernate.validator.constraints.UUID
     private UUID id;
 
     private Boolean isArchived;

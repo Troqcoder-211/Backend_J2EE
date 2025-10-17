@@ -65,7 +65,7 @@ public class User {
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ConversationMember> conversationMembers;
 
-  @OneToMany(mappedBy = "created_by", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Conversation> createdConversations;
 
   @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
