@@ -40,26 +40,29 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     public ApiResponse<?> login(LoginRequestDTO request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()));
 
-        var user = userRepository.findByUserName(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+            var user = userRepository.findByUserName(request.getUsername())
+                    .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
-        UserDetails userDetails = org.springframework.security.core.userdetails.User
-                        .withUsername(user.getUserName())
-                        .password(user.getPassword())
-                        .authorities("USER")
-                        .build();
+            UserDetails userDetails = org.springframework.security.core.userdetails.User
+                    .withUsername(user.getUserName())
+                    .password(user.getPassword())
+                    .authorities("USER")
+                    .build();
 
-        var accessToken = jwtService.generateAccessToken(userDetails);
-        var refreshToken = jwtService.generateRefreshToken(userDetails);
+            var accessToken = jwtService.generateAccessToken(userDetails);
+            var refreshToken = jwtService.generateRefreshToken(userDetails);
 
-        return new ApiResponse<>(200, "Đăng nhập thành công", new JwtResponseDTO(accessToken, refreshToken));
+            return new ApiResponse<>(200, "Đăng nhập thành công", new JwtResponseDTO(accessToken, refreshToken));
+        } catch (Exception e) {
+            return new ApiResponse<>(500, "Lỗi khi đăng nhập", null);
+        }
+
     }
 
     @Override
@@ -70,23 +73,28 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     public ApiResponse<?> register(RegisterRequestDTO request) {
-        if (userRepository.findByUserName(request.getUsername()).isPresent()) {
-            return new ApiResponse<>(400, "Tên đăng nhập đã tồn tại", false);
+        try {
+            if (userRepository.findByUserName(request.getUsername()).isPresent()) {
+                return new ApiResponse<>(400, "Tên đăng nhập đã tồn tại", false);
+            }
+            if (request.getPassword().length() < 8) {
+                return new ApiResponse<>(401, "Mật khẩu không hợp lệ", false);
+            }
+
+            User user = User.builder()
+                    .userName(request.getUsername())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .displayName(request.getDisplayName())
+                    .avatarS3Key("")
+                    .build();
+
+            userRepository.save(user);
+
+            return new ApiResponse<>(200, "Tạo tài khoản thành công", true);
+        } catch (Exception e) {
+            return new ApiResponse<>(500, "Lỗi khi đăng ký", false);
         }
-        if (request.getPassword().length() < 8) {
-            return new ApiResponse<>(401, "Mật khẩu không hợp lệ", false);
-        }
 
-        User user = User.builder()
-                .userName(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .displayName(request.getDisplayName())
-                .avatarS3Key("")
-                .build();
-
-        userRepository.save(user);
-
-        return new ApiResponse<>(200, "Tạo tài khoản thành công", true);
     }
 
     @Override
