@@ -12,6 +12,12 @@ import j2ee.ourteam.repositories.UserRepository;
 @Service
 public class UserServiceImpl implements IUserService {
 
+  private final UserRepository userRepository;
+
+  public UserServiceImpl(UserRepository userRepository) {
+    this.userRepository = userRepository;
+  }
+
   @Override
   public List<Object> findAll() {
     // TODO Auto-generated method stub
