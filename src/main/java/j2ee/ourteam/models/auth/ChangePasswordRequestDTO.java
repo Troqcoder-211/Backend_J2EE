@@ -14,7 +14,6 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 public class ChangePasswordRequestDTO {
-    private String token;
-    private String confirmPassword;
+    private String oldPassword;
     private String newPassword;
 }

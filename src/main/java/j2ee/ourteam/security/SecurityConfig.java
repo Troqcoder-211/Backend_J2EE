@@ -3,56 +3,62 @@ package j2ee.ourteam.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter,
-            UserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder) {
         this.jwtAuthenticationFilter = jwtAuthFilter;
-        this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Bean
-    @SuppressWarnings("deprecation")
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder);
-        return provider;
-    }
-
+    // ✅ AuthenticationManager để dùng cho login controller
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    // ✅ Cấu hình bảo mật chính
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // ✅ Cho phép frontend gửi cookie cross-origin
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(List.of("http://localhost:3000")); // domain FE
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowCredentials(true); // cho phép cookie
+                    config.setAllowedHeaders(List.of("Content-Type", "Authorization"));
+                    return config;
+                }))
+
+                // ✅ Vô hiệu hóa CSRF cho API JWT
                 .csrf(csrf -> csrf.disable())
+
+                // ✅ Không lưu session trong server
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // ✅ Cho phép các endpoint không cần đăng nhập
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .anyRequest().authenticated())
-                .authenticationProvider(authenticationProvider())
+
+                // ✅ Thêm filter JWT (đọc cookie, xác thực)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
