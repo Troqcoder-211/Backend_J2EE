@@ -36,18 +36,18 @@ public class S3Service {
     PutObjectRequest putObjectRequest = PutObjectRequest.builder()
         .bucket(bucketName)
         .key(key)
-        .acl("public-read")
         .contentType(file.getContentType())
         .build();
 
     s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
 
-    return "https://" + bucketName + ".s3.ap-southeast-1.amazonaws.com/" + key;
+    // return "https://" + bucketName + ".s3.ap-southeast-1.amazonaws.com/" + key;
+    return key;
   }
 
   public Resource download(String key) throws IOException {
     try {
-      Path tempFile = Files.createTempFile("s3download-", "-" + key.replace("/", "_"));
+      Path tempFile = Files.createTempFile("s3download-", ".jpg");
 
       s3Client.getObject(
           GetObjectRequest.builder()

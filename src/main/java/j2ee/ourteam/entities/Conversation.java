@@ -17,9 +17,17 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "conversations")
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Conversation {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)

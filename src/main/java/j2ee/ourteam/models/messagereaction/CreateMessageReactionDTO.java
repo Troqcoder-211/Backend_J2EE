@@ -8,12 +8,13 @@ import lombok.Builder;
 import lombok.Data;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Data
 @AllArgsConstructor
 @Builder
 public class CreateMessageReactionDTO {
-  @org.hibernate.validator.constraints.UUID
+  @NotNull
   private UUID userId;
 
   @NotBlank(message = "Emoji isn't empty")

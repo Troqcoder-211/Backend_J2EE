@@ -9,10 +9,12 @@ import j2ee.ourteam.models.attachment.AttachmentDTO;
 
 @Mapper(componentModel = "spring")
 public interface AttachmentMapper {
+
   @Mappings({
       @Mapping(target = "id", source = "id"),
-      @Mapping(target = "uploaderId", source = "uploader.id"),
-      @Mapping(target = "conversationId", source = "conversation.id"),
+      // Dùng expression để tránh null pointer / không tìm thấy property
+      @Mapping(target = "uploaderId", expression = "java(attachment.getUploader() != null ? attachment.getUploader().getId() : null)"),
+      @Mapping(target = "conversationId", expression = "java(attachment.getConversation() != null ? attachment.getConversation().getId() : null)")
   })
   AttachmentDTO toDto(Attachment attachment);
 
@@ -20,8 +22,8 @@ public interface AttachmentMapper {
       @Mapping(target = "id", ignore = true),
       @Mapping(target = "conversation", ignore = true),
       @Mapping(target = "uploader", ignore = true),
-      @Mapping(target = "", source = "", ignore = true),
-      @Mapping(target = "", expression = "java(java.time.LocalDate.now())"),
+      @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())"),
+      @Mapping(target = "messages", ignore = true)
   })
   Attachment toEntity(AttachmentDTO attachmentDTO);
 }

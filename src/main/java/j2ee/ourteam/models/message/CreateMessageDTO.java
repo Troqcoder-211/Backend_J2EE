@@ -29,10 +29,9 @@ public class CreateMessageDTO {
   @ValidUUID
   private UUID replyTo;
 
-  @NotBlank(message = "Message Type isn't empty")
   @Builder.Default
   private MessageTypeEnum messageType = MessageTypeEnum.TEXT;
 
-  @Size(max = 2, message = "You can attach up to 10 files per message")
+  @Size(max = 10, message = "You can attach up to 10 files per message")
   private List<@ValidUUID UUID> attachmentIds;
 }

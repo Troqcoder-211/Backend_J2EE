@@ -19,17 +19,15 @@ import j2ee.ourteam.repositories.AttachmentRepository;
 import j2ee.ourteam.repositories.ConversationRepository;
 import j2ee.ourteam.repositories.UserRepository;
 import j2ee.ourteam.services.aws.S3Service;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AttachmentServiceImpl implements IAttachmentService {
-
   private final AttachmentRepository attachmentRepository;
   private final ConversationRepository conversationRepository;
   private final UserRepository userRepository;
   private final S3Service s3Service;
-
   private final AttachmentMapper attachmentMapper;
 
   @Value("${aws.s3.bucket}")
@@ -37,14 +35,14 @@ public class AttachmentServiceImpl implements IAttachmentService {
 
   @Override
   public AttachmentDTO uploadFile(MultipartFile file, UUID uploaderId, UUID conversationId) {
+
+    User uploader = userRepository.findById(uploaderId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    Conversation conversation = conversationRepository.findById(conversationId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
     try {
-
       String key = s3Service.uploadFile(file);
-
-      User uploader = userRepository.findById(uploaderId).orElseThrow(() -> new RuntimeException("User not found"));
-
-      Conversation conversation = conversationRepository.findById(conversationId)
-          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
 
       Attachment attachment = Attachment.builder()
           .uploader(uploader)
@@ -77,20 +75,25 @@ public class AttachmentServiceImpl implements IAttachmentService {
   }
 
   @Override
-  public AttachmentDownloadDTO downloadFile(UUID id) {
+  public void downloadFile(UUID id) {
+    Attachment attachment = attachmentRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found"));
+
     try {
-      Attachment attachment = attachmentRepository.findById(id)
-          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found"));
 
       String key = attachment.getS3Key();
 
+      if (key.startsWith("http")) {
+        key = key.substring(key.lastIndexOf("/") + 1);
+      }
+
       Resource resource = s3Service.download(key);
 
-      return AttachmentDownloadDTO.builder()
-          .filename(attachment.getFilename())
-          .mimeType(attachment.getMimeType())
-          .resource(resource)
-          .build();
+      // return AttachmentDownloadDTO.builder()
+      // .filename(attachment.getFilename())
+      // .mimeType(attachment.getMimeType())
+      // .resource(resource)
+      // .build();
 
     } catch (Exception e) {
       throw new RuntimeException("Failed to download file", e);

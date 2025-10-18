@@ -12,5 +12,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface MessageReactionRepository extends JpaRepository<MessageReaction, MessageReactionId> {
   Optional<MessageReaction> findByMessageAndUser(Message message, User user);
 
-  void deleteByMessageAndUserAndEmoji(Message message, User user, String emoji);
+  void deleteByMessageAndUserAndIdEmoji(Message message, User user, String emoji);
 }

@@ -81,7 +81,7 @@ public class MessageController {
     Map<String, Object> response = new HashMap<>();
 
     response.put("status", "success");
-    response.put("message", "Message is deleted");
+    response.put("message", "Reaction is deleted");
 
     return ResponseEntity.ok(response);
   }

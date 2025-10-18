@@ -19,12 +19,13 @@ import org.springframework.web.multipart.MultipartFile;
 import j2ee.ourteam.models.attachment.AttachmentDTO;
 import j2ee.ourteam.models.attachment.AttachmentDownloadDTO;
 import j2ee.ourteam.services.attachment.IAttachmentService;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("attachments")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AttachmentController {
+
   @Autowired
   private final IAttachmentService attachmentService;
 
@@ -46,13 +47,14 @@ public class AttachmentController {
   }
 
   @GetMapping("/{id}/download")
-  public ResponseEntity<Resource> downloadFile(@PathVariable UUID id) {
-    AttachmentDownloadDTO file = attachmentService.downloadFile(id);
+  public void downloadFile(@PathVariable UUID id) {
+    attachmentService.downloadFile(id);
 
-    return ResponseEntity.ok()
-        .contentType(MediaType.parseMediaType(file.getMimeType()))
-        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
-        .body(file.getResource());
+    // return ResponseEntity.ok()
+    // .contentType(MediaType.parseMediaType(file.getMimeType()))
+    // .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" +
+    // file.getFilename() + "\"")
+    // .body(file.getResource());
   }
 
   @DeleteMapping("/{id}")

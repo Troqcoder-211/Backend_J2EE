@@ -22,5 +22,5 @@ public class NotificationDTO {
   private boolean isDelivered;
   private LocalDate deliveredAt;
   private boolean isRead;
-  private LocalDate createedAt;
+  private LocalDate createdAt;
 }

@@ -248,7 +248,7 @@ public class MessageServiceImpl implements IMessageService {
     try {
       MessageReactionId key = new MessageReactionId(id, userId, emoji);
 
-      if (messageReactionRepository.existsById(key))
+      if (!messageReactionRepository.existsById(key))
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Reaction not found");
 
       messageReactionRepository.deleteById(key);
@@ -259,12 +259,14 @@ public class MessageServiceImpl implements IMessageService {
 
   @Override
   public void markAsRead(UUID id, UUID userId) {
-    try {
-      Message message = messageRepository.findById(id)
-          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
+    System.out.println("UUID MESSAGE" + id);
+    Message message = messageRepository.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
 
-      User user = userRepository.findById(userId)
-          .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    try {
 
       MessageReadId key = new MessageReadId(id, userId);
 

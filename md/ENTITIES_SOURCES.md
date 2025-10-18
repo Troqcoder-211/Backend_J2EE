@@ -438,6 +438,10 @@ public class MessageReaction {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
+  @Column(insertable = false, updatable = false)
+  private String emoji;
+
+
   @Builder.Default
   @Column(name = "reacted_At", nullable = false)
   private LocalDate reactedAt = LocalDate.now();
