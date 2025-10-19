@@ -26,9 +26,6 @@ import j2ee.ourteam.repositories.DeviceRepository;
 import j2ee.ourteam.repositories.NotificationRepository;
 import j2ee.ourteam.repositories.UserRepository;
 import lombok.AllArgsConstructor;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -53,19 +50,17 @@ public class NotificationServiceImpl implements INotificationService {
     User user = userRepository.findById(createDto.getUserId())
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-    Device device = deviceRepository.findById(createDto.getDeviceId())
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Device not found"));
-
+    List<Device> devices = deviceRepository.findByUserId(user.getId());
     try {
-      Notification notification = notificationMapper.toEntity(createDto);
-      notification.setUser(user);
-      notification.setDevice(device);
+      List<Notification> notifications = devices.stream()
+          .<Notification>map(device -> notificationMapper.toEntity(createDto)).toList();
 
-      notificationRepository.save(notification);
+      // Ghi 1 lần
+      notificationRepository.saveAll(notifications);
 
-      webSocketController.pushNotification(notificationMapper.toDto(notification));
+      webSocketController.pushNotification(notificationMapper.toDto(notifications.get(0)));
 
-      return notificationMapper.toDto(notification);
+      return notificationMapper.toDto((notifications.get(0)));
     } catch (Exception e) {
       throw new RuntimeException("Failed to create notification: " + e.getMessage(), e);
     }

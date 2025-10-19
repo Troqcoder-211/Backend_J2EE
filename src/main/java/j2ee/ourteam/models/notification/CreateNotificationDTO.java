@@ -22,9 +22,6 @@ public class CreateNotificationDTO implements Serializable {
     @NotNull(message = "userId isn't empty")
     private UUID userId;
 
-    @NotNull(message = "deviceId isn't empty")
-    private UUID deviceId;
-
     @Enumerated(EnumType.STRING)
     private NotificationTypeEnum type;
 
