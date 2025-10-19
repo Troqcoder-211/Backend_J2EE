@@ -26,6 +26,10 @@ import j2ee.ourteam.repositories.DeviceRepository;
 import j2ee.ourteam.repositories.NotificationRepository;
 import j2ee.ourteam.repositories.UserRepository;
 import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -40,6 +44,7 @@ public class NotificationServiceImpl implements INotificationService {
   private WebSocketController webSocketController;
 
   @Override
+  @Transactional
   public NotificationDTO create(Object dto) {
     if (!(dto instanceof CreateNotificationDTO createDto)) {
       throw new IllegalArgumentException("Invalid DTO type for create");
@@ -53,21 +58,16 @@ public class NotificationServiceImpl implements INotificationService {
 
     try {
       Notification notification = notificationMapper.toEntity(createDto);
-
       notification.setUser(user);
       notification.setDevice(device);
 
       notificationRepository.save(notification);
 
-      // Tuỳ chọn: đẩy realtime
-      // sendToWebSocket(notification);
-      // sendPushNotification(notification);
-
       webSocketController.pushNotification(notificationMapper.toDto(notification));
 
       return notificationMapper.toDto(notification);
     } catch (Exception e) {
-      throw new RuntimeException("Failed to create notification" + e.getMessage(), e);
+      throw new RuntimeException("Failed to create notification: " + e.getMessage(), e);
     }
   }
 

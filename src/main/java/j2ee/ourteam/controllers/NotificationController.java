@@ -1,6 +1,7 @@
 package j2ee.ourteam.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import j2ee.ourteam.models.notification.CreateNotificationDTO;
@@ -40,8 +41,8 @@ public class NotificationController {
   }
 
   // /notifications GET
-  @GetMapping("/{userId}")
-  public ResponseEntity<PageResponse<NotificationDTO>> getNotification(@PathVariable UUID userId,
+  @GetMapping
+  public ResponseEntity<PageResponse<NotificationDTO>> getNotification(@RequestParam UUID userId,
       @RequestBody @Valid PageFilter pageFilter) {
     Page<NotificationDTO> page = notificationService.getUserNotifications(userId, pageFilter);
     return ResponseEntity.ok(PageResponse.from(page));

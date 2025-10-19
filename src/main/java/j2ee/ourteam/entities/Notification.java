@@ -2,8 +2,17 @@ package j2ee.ourteam.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import com.vladmihalcea.hibernate.type.json.JsonType;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "notifications")
@@ -11,7 +20,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Notification {
+public class Notification implements Serializable {
 
   @Id
   @GeneratedValue
@@ -30,9 +39,9 @@ public class Notification {
   private NotificationType type;
 
   // JSON dữ liệu (Spring sẽ map thành chuỗi)
-  @Lob
   @Column(columnDefinition = "jsonb")
-  private String payload;
+  @JdbcTypeCode(SqlTypes.JSON)
+  private Object payload;
 
   @Builder.Default
   @Column(name = "is_delivered", nullable = false)
