@@ -46,6 +46,10 @@ public class User {
   @Column(name = "avatar_s3_key")
   private String avatarS3Key;
 
+  @Builder.Default
+  @Column(name = "role", nullable = false, columnDefinition = "TEXT DEFAULT 'USER'")
+  private String role = "USER"; // 'USER' | 'ADMIN' trong tương lai
+
   @Column(name = "created_at", updatable = false)
   private LocalDateTime createdAt;
 
