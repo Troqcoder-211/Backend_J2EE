@@ -14,5 +14,9 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 public class GetUserListRequestDTO {
-    private String text;
+    private String userName;
+    @Builder.Default
+    private int page = 1;
+    @Builder.Default
+    private int limit = 10;
 }

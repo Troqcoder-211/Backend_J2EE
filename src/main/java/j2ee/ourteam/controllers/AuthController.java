@@ -14,9 +14,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import j2ee.ourteam.entities.User;
+import j2ee.ourteam.mapping.UserMapper;
 import j2ee.ourteam.models.apiresponse.ApiResponse;
 import j2ee.ourteam.models.auth.*;
-import j2ee.ourteam.models.user.UserResponseDTO;
+import j2ee.ourteam.models.user.UserProfileResponseDTO;
 import j2ee.ourteam.services.auth.IAuthService;
 import lombok.RequiredArgsConstructor;
 
@@ -26,6 +27,8 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
     private final IAuthService authService;
+
+    private final UserMapper userMapper;
 
     // Đăng ký tài khoản mới
     @PostMapping("/register")
@@ -224,7 +227,7 @@ public class AuthController {
             return ResponseEntity.status(401).body("Unauthorized");
         }
 
-        return ResponseEntity.status(200).body(new UserResponseDTO(currentUser));
+        return ResponseEntity.status(200).body(userMapper.toUserProfileResponseDTO(currentUser));
     }
 
     private String extractCookieValue(HttpServletRequest request, String name) {

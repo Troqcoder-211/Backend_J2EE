@@ -13,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
-public class UpdateUserDTO {
+public class UpdateUserProfileDTO {
     private String email;
     private String displayName;
     private String avatarS3Key;
