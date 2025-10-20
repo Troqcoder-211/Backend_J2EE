@@ -1,4 +1,6 @@
-package j2ee.ourteam.models.auth;
+package j2ee.ourteam.models.user;
+
+import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,9 +15,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
-public class LoginRequestDTO {
-    private String userName;
-    private String password;
-    private String deviceType;
-    private String pushToken;
+public class GetUserRequestDTO {
+    private UUID userId;
 }

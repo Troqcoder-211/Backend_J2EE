@@ -14,5 +14,5 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 public class ForgotPasswordRequestDTO {
-    private String email;
+    private String userName;
 }

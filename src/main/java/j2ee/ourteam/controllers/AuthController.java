@@ -152,12 +152,27 @@ public class AuthController {
     }
 
     // Quên mật khẩu
-    // @PostMapping("/forgot-password")
-    // public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequestDTO
-    // request) {
-    // authService.forgotPassword(request);
-    // return ResponseEntity.ok("Reset link sent to your email");
-    // }
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequestDTO request) {
+        try {
+            ApiResponse<?> response = authService.handleForgotPassword(request);
+            return ResponseEntity.status(response.getStatusCode()).body(response.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi xử lý");
+        }
+    }
+
+    // Đặt lại mật khẩu
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequestDTO request) {
+        try {
+            ApiResponse<?> response = authService.resetPassword(request);
+            return ResponseEntity.status(response.getStatusCode()).body(response.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi xử lý");
+
+        }
+    }
 
     // Đổi mật khẩu (khi đã đăng nhập)
     @PostMapping("/change-password")
@@ -211,15 +226,6 @@ public class AuthController {
 
         return ResponseEntity.status(200).body(new UserResponseDTO(currentUser));
     }
-
-    // Hàm tiện ích lấy username từ JWT (qua SecurityContext)
-    // private String getCurrentUserName() {
-    // Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    // if (auth == null || !auth.isAuthenticated()) {
-    // throw new RuntimeException("User not authenticated");
-    // }
-    // return auth.getName();
-    // }
 
     private String extractCookieValue(HttpServletRequest request, String name) {
         if (request.getCookies() == null)

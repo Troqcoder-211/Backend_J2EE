@@ -1,7 +1,5 @@
 package j2ee.ourteam.services.auth;
 
-import java.util.UUID;
-
 import j2ee.ourteam.models.apiresponse.ApiResponse;
 import j2ee.ourteam.models.auth.*;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +16,8 @@ public interface IAuthService {
 
     public ApiResponse<?> changePassword(String username, ChangePasswordRequestDTO changePasswordRequestDTO);
 
-    public ApiResponse<?> forgotPassword(ForgotPasswordRequestDTO forgotPasswordRequestDTO);
+    public ApiResponse<?> handleForgotPassword(ForgotPasswordRequestDTO forgotPasswordRequestDTO);
+
+    public ApiResponse<?> resetPassword(ResetPasswordRequestDTO resetPasswordRequestDTO);
 
 }

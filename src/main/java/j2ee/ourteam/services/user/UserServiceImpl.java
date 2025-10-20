@@ -7,16 +7,15 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import j2ee.ourteam.entities.User;
+import j2ee.ourteam.models.user.GetUserListRequestDTO;
 import j2ee.ourteam.repositories.UserRepository;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements IUserService {
 
   private final UserRepository userRepository;
-
-  public UserServiceImpl(UserRepository userRepository) {
-    this.userRepository = userRepository;
-  }
 
   @Override
   public List<Object> findAll() {
@@ -48,30 +47,9 @@ public class UserServiceImpl implements IUserService {
     throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
   }
 
-  // private final UserRepository userRepository;
-
-  // public UserServiceImpl(UserRepository userRepository) {
-  // this.userRepository = userRepository;
-  // }
-
-  // @Override
-  // public List<User> findAll() {
-  // return userRepository.findAll();
-  // }
-
-  // @Override
-  // public Optional<User> findById(UUID id) {
-  // return userRepository.findById(id);
-  // }
-
-  // @Override
-  // public User save(User entity) {
-  // return userRepository.save(entity);
-  // }
-
-  // @Override
-  // public void deleteById(UUID id) {
-  // userRepository.deleteById(id);
-  // }
-
+  @Override
+  public Optional<Object> findByName(GetUserListRequestDTO request) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findByName'");
+  }
 }

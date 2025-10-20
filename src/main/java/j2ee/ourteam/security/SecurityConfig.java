@@ -22,7 +22,7 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter,
-                          PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder) {
         this.jwtAuthenticationFilter = jwtAuthFilter;
         this.passwordEncoder = passwordEncoder;
     }
@@ -55,7 +55,12 @@ public class SecurityConfig {
 
                 // ✅ Cho phép các endpoint không cần đăng nhập
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/auth/register",
+                                "/auth/login",
+                                "/auth/forgot-password",
+                                "/auth/reset-password",
+                                "/auth/refresh")
+                        .permitAll()
                         .anyRequest().authenticated())
 
                 // ✅ Thêm filter JWT (đọc cookie, xác thực)

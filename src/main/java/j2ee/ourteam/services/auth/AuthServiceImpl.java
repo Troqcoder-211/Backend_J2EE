@@ -1,6 +1,7 @@
 package j2ee.ourteam.services.auth;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import j2ee.ourteam.entities.Device;
+import j2ee.ourteam.entities.PasswordResetOtp;
 import j2ee.ourteam.entities.RefreshToken;
 import j2ee.ourteam.entities.User;
 import j2ee.ourteam.models.apiresponse.ApiResponse;
@@ -18,39 +20,34 @@ import j2ee.ourteam.models.auth.ForgotPasswordRequestDTO;
 import j2ee.ourteam.models.auth.LoginResponseDTO;
 import j2ee.ourteam.models.auth.LoginRequestDTO;
 import j2ee.ourteam.models.auth.RegisterRequestDTO;
+import j2ee.ourteam.models.auth.ResetPasswordRequestDTO;
 import j2ee.ourteam.repositories.DeviceRepository;
 import j2ee.ourteam.repositories.RefreshTokenRepository;
 import j2ee.ourteam.repositories.UserRepository;
+import j2ee.ourteam.services.mail.MailServiceImpl;
+import j2ee.ourteam.services.otp.OtpServiceImpl;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements IAuthService {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    private DeviceRepository deviceRepository;
+    private final DeviceRepository deviceRepository;
 
-    private RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    private JwtService jwtService;
+    private final JwtService jwtService;
 
-    private AuthenticationManager authenticationManager;
+    private final OtpServiceImpl otpService;
 
-    public AuthServiceImpl(UserRepository userRepository,
-            DeviceRepository deviceRepository,
-            RefreshTokenRepository refreshTokenRepository,
-            PasswordEncoder passwordEncoder,
-            JwtService jwtService,
-            AuthenticationManager authenticationManager) {
-        this.userRepository = userRepository;
-        this.deviceRepository = deviceRepository;
-        this.refreshTokenRepository = refreshTokenRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
-        this.authenticationManager = authenticationManager;
-    }
+    private final MailServiceImpl mailService;
+
+    private final AuthenticationManager authenticationManager;
 
     @Override
     public ApiResponse<LoginResponseDTO> login(LoginRequestDTO request, HttpServletResponse response) {
@@ -58,11 +55,11 @@ public class AuthServiceImpl implements IAuthService {
             // ✅ Xác thực username + password
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
+                            request.getUserName(),
                             request.getPassword()));
 
             // ✅ Lấy user từ DB
-            var user = userRepository.findByUserName(request.getUsername())
+            var user = userRepository.findByUserName(request.getUserName())
                     .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
             // ✅ Lưu thông tin thiết bị
@@ -106,11 +103,8 @@ public class AuthServiceImpl implements IAuthService {
     public ApiResponse<String> refreshAccessToken(String refreshToken) {
 
         try {
-            // 1️⃣ Giải mã refresh token
-            String username = jwtService.extractUsername(refreshToken);
             UUID deviceId = jwtService.extractDeviceId(refreshToken);
 
-            // 2️⃣ Kiểm tra DB (nếu bạn lưu refresh token)
             RefreshToken refresh = refreshTokenRepository.findByToken(refreshToken).orElse(null);
 
             if (refresh == null) {
@@ -121,7 +115,6 @@ public class AuthServiceImpl implements IAuthService {
                 return new ApiResponse<>(401, "Refresh token đã hết hạn", null);
             }
 
-            // 3️⃣ Sinh access token mới
             User user = refresh.getUser();
             String newAccessToken = jwtService.generateAccessToken(user, deviceId);
 
@@ -135,7 +128,7 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     public ApiResponse<?> register(RegisterRequestDTO request) {
         try {
-            if (userRepository.findByUserName(request.getUsername()).isPresent()) {
+            if (userRepository.findByUserName(request.getUserName()).isPresent()) {
                 return new ApiResponse<>(400, "Tên đăng nhập đã tồn tại", false);
             }
             if (request.getPassword().length() < 8) {
@@ -143,7 +136,7 @@ public class AuthServiceImpl implements IAuthService {
             }
 
             User user = User.builder()
-                    .userName(request.getUsername())
+                    .userName(request.getUserName())
                     .password(passwordEncoder.encode(request.getPassword()))
                     .displayName(request.getDisplayName())
                     .avatarS3Key("")
@@ -184,6 +177,9 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     public ApiResponse<?> changePassword(String username, ChangePasswordRequestDTO changePasswordRequestDTO) {
         try {
+            if (changePasswordRequestDTO.getNewPassword().length() < 8) {
+                return new ApiResponse<>(401, "Mật khẩu không hợp lệ", false);
+            }
 
             User user = userRepository.findByUserName(username).orElse(null);
             if (user == null) {
@@ -204,9 +200,46 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     @Override
-    public ApiResponse<?> forgotPassword(ForgotPasswordRequestDTO forgotPasswordRequestDTO) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'forgotPassword'");
+    public ApiResponse<?> handleForgotPassword(ForgotPasswordRequestDTO forgotPasswordRequestDTO) {
+        try {
+            Optional<User> optUser = userRepository.findByUserName(forgotPasswordRequestDTO.getUserName());
+            if (optUser.isEmpty()) {
+                return new ApiResponse<>(404, "Không tìm thấy người dùng", null);
+            }
+            User user = optUser.get();
+            PasswordResetOtp otp = otpService.generateOtp(user);
+            mailService.sendTextMail(user.getEmail(), otp);
+            return new ApiResponse<>(200, "Đã gửi OTP đến email của bạn", null);
+        } catch (Exception e) {
+            return new ApiResponse<String>(500, "Lỗi xử lí", null);
+        }
+    }
+
+    @Override
+    public ApiResponse<?> resetPassword(ResetPasswordRequestDTO resetPasswordRequestDTO) {
+        try {
+            if (resetPasswordRequestDTO.getNewPassword().length() < 8) {
+                return new ApiResponse<>(401, "Mật khẩu không hợp lệ", false);
+            }
+
+            Optional<User> optUser = userRepository.findByUserName(resetPasswordRequestDTO.getUsername());
+            if (optUser.isEmpty()) {
+                return new ApiResponse<>(404, "Không tìm thấy người dùng", null);
+            }
+            User user = optUser.get();
+
+            boolean isOtpValid = otpService.verifyOtp(user.getId(), resetPasswordRequestDTO.getOtpCode());
+            if (!isOtpValid) {
+                return new ApiResponse<>(400, "OTP không hợp lệ hoặc đã hết hạn", false);
+            }
+
+            String hashedPassword = passwordEncoder.encode(resetPasswordRequestDTO.getNewPassword());
+            user.setPassword(hashedPassword);
+            userRepository.save(user);
+            return new ApiResponse<>(200, "Bạn đã đặt lại mật khẩu thành công", null);
+        } catch (Exception e) {
+            return new ApiResponse<String>(500, "Lỗi xử lí", null);
+        }
     }
 
 }

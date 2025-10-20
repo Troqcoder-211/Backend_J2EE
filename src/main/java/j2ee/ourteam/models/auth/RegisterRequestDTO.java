@@ -14,7 +14,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 public class RegisterRequestDTO {
-    private String username;
+    private String userName;
     private String email;
     private String password;
     private String displayName;
