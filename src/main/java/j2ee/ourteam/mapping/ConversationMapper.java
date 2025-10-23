@@ -11,6 +11,7 @@ import j2ee.ourteam.entities.Conversation;
 @Mapper(componentModel = "spring")
 public interface ConversationMapper {
 
+    @Mapping(target = "createdBy", expression = "java(entity.getCreatedBy() != null ? entity.getCreatedBy().getUserName() : null)")
     ConversationDTO toDto(Conversation entity);
 
     @Mapping(target = "id", ignore = true)
@@ -44,4 +45,6 @@ public interface ConversationMapper {
     @Mapping(target = "members", ignore = true)
     @Mapping(target = "messages", ignore = true)
     void updateArchivedFromDto(ArchivedConversationDTO dto, @MappingTarget Conversation entity);
+
+
 }

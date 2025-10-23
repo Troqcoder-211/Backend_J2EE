@@ -3,7 +3,7 @@ package j2ee.ourteam.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -31,5 +31,5 @@ public class Presence {
 
   @Builder.Default
   @Column(name = "updated_at", nullable = false)
-  private LocalDate updatedAt = LocalDate.now();
+  private LocalDateTime updatedAt = LocalDateTime.now();
 }

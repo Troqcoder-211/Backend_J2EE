@@ -1,6 +1,6 @@
 package j2ee.ourteam.entities;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,10 +59,10 @@ public class Message {
 
   @Builder.Default
   @Column(name = "created_at")
-  private LocalDate createdAt = LocalDate.now();
+  private LocalDateTime createdAt = LocalDateTime.now();
 
   @Column(name = "edited_at")
-  private LocalDate editedAt;
+  private LocalDateTime editedAt;
 
   @Builder.Default
   @Column(name = "is_deleted", nullable = false)

@@ -1,6 +1,6 @@
 package j2ee.ourteam.entities;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -48,7 +48,7 @@ public class ConversationMember {
 
   @Builder.Default
   @Column(name = "joined_at", nullable = false)
-  private LocalDate joinedAt = LocalDate.now();
+  private LocalDateTime joinedAt = LocalDateTime.now();
 
   @Builder.Default
   @Column(name = "is_muted", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
@@ -58,7 +58,7 @@ public class ConversationMember {
   private UUID lastReadMessageId;
 
   @Column(name = "last_read_at")
-  private LocalDate lastReadAt;
+  private LocalDateTime lastReadAt;
 
   public enum Role {
     MEMBER, OWNER

@@ -84,6 +84,7 @@ public class AuthServiceImpl implements IAuthService {
             User user = User.builder()
                     .userName(request.getUsername())
                     .password(passwordEncoder.encode(request.getPassword()))
+                    .email(request.getEmail())
                     .displayName(request.getDisplayName())
                     .avatarS3Key("")
                     .build();

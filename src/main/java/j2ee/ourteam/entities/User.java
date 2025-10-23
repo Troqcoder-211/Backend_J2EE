@@ -103,4 +103,11 @@ public class User {
     this.updatedAt = LocalDateTime.now();
   }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +  // Chỉ in ID hoặc field đơn giản
+                ", username='" + userName + '\'' +
+                '}';  // Không in createdConversations hoặc các list lazy
+    }
 }
