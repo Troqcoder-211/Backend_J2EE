@@ -31,9 +31,13 @@ public class JwtService {
 
     @SuppressWarnings("deprecation")
     public String generateAccessToken(User user, UUID deviceId) {
+        Map<String, Object> claims = Map.of(
+                "userId", user.getId(),
+                "deviceId", deviceId
+        );
         return Jwts.builder()
                 .setSubject(user.getUserName())
-                .addClaims(Map.of("deviceId", deviceId))
+                .addClaims(claims)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -42,10 +46,13 @@ public class JwtService {
 
     @SuppressWarnings("deprecation")
     public String generateRefreshToken(User user, UUID deviceId) {
+        Map<String, Object> claims = Map.of(
+                "userId", user.getId(),
+                "deviceId", deviceId
+        );
         return Jwts.builder()
                 .setSubject(user.getUserName())
-                .addClaims(Map.of("deviceId", deviceId))
-                .addClaims(Map.of("userId", user.getId()))
+                .addClaims(claims)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -60,20 +67,23 @@ public class JwtService {
 
     @SuppressWarnings("deprecation")
     public UUID extractDeviceId(String token) {
-        return ((UUID) Jwts.parser()
+        Claims claims = Jwts.parser()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .get("deviceId"));
+                .getBody();
+
+        return UUID.fromString((String) claims.get("deviceId"));
     }
+
     public UUID extractUserId(String token) {
-        return (UUID) Jwts.parser()
+        Claims claims = Jwts.parser()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .get("userId");
+                .getBody();
+
+        return UUID.fromString((String) claims.get("userId"));
     }
     public boolean validateToken(String token) {
         try {
