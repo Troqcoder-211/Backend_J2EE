@@ -17,9 +17,6 @@ public class OtpCleanupService {
     @Scheduled(fixedDelay = 3600000) // Mỗi 1 tiếng
     @Transactional
     public void cleanupExpiredOtps() {
-        int deleted = otpRepository.deleteExpiredOrUsedOtps(LocalDateTime.now());
-        if (deleted > 0) {
-            System.out.println("Deleted " + deleted + " expired/used OTPs");
-        }
+        otpRepository.deleteExpiredOrUsedOtps(LocalDateTime.now());
     }
 }

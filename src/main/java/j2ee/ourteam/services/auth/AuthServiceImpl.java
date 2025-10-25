@@ -4,16 +4,16 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import j2ee.ourteam.entities.*;
+import j2ee.ourteam.repositories.PresenceRepository;
+import j2ee.ourteam.services.mail.IMailService;
+import j2ee.ourteam.services.otp.IOtpService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import j2ee.ourteam.entities.Device;
-import j2ee.ourteam.entities.PasswordResetOtp;
-import j2ee.ourteam.entities.RefreshToken;
-import j2ee.ourteam.entities.User;
 import j2ee.ourteam.models.apiresponse.ApiResponse;
 import j2ee.ourteam.models.auth.ChangePasswordRequestDTO;
 import j2ee.ourteam.models.auth.ForgotPasswordRequestDTO;
@@ -25,7 +25,6 @@ import j2ee.ourteam.repositories.DeviceRepository;
 import j2ee.ourteam.repositories.RefreshTokenRepository;
 import j2ee.ourteam.repositories.UserRepository;
 import j2ee.ourteam.services.mail.MailServiceImpl;
-import j2ee.ourteam.services.otp.OtpServiceImpl;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -39,13 +38,15 @@ public class AuthServiceImpl implements IAuthService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
+    private final PresenceRepository presenceRepository;
+
     private final PasswordEncoder passwordEncoder;
 
     private final JwtService jwtService;
 
-    private final OtpServiceImpl otpService;
+    private final IOtpService otpService;
 
-    private final MailServiceImpl mailService;
+    private final IMailService mailService;
 
     private final AuthenticationManager authenticationManager;
 
@@ -143,6 +144,13 @@ public class AuthServiceImpl implements IAuthService {
                     .build();
 
             userRepository.save(user);
+
+            Presence presence = Presence.builder()
+                            .userId(user.getId())
+                            .isOnline(false)
+                            .lastSeenAt(LocalDateTime.now())
+                            .build();
+            presenceRepository.save(presence);
 
             return new ApiResponse<>(200, "Tạo tài khoản thành công", true);
         } catch (Exception e) {
