@@ -1,5 +1,7 @@
 package j2ee.ourteam.controllers;
 
+import j2ee.ourteam.services.aws.S3Service;
+import lombok.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import j2ee.ourteam.entities.User;
@@ -10,7 +12,10 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -42,24 +47,31 @@ public class UserController {
         return ResponseEntity.ok(updated);
     }
 
+    @PostMapping("/me/avatar")
+    public ResponseEntity<?> updateAvatar(@AuthenticationPrincipal User currentUser,
+                                          @RequestParam("file") MultipartFile file) throws IOException {
+        var avatarUrl = userService.updateAvatar(currentUser.getId(), file);
+        return ResponseEntity.ok(Map.of("avatarUrl", avatarUrl));
+    }
+
     // Vô hiệu hóa tài khoản
     @PatchMapping("/me/disable")
-    public ResponseEntity<String> disable(@AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<?> disable(@AuthenticationPrincipal User currentUser) {
         userService.disableUser(currentUser.getId());
-        return ResponseEntity.ok("Tài khoản đã bị vô hiệu hóa");
+        return ResponseEntity.ok(Map.of("message","Tài khoản đã bị vô hiệu hóa"));
     }
 
     // Kích hoạt lại tài khoản
     @PatchMapping("/me/enable")
-    public ResponseEntity<String> enable(@AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<?> enable(@AuthenticationPrincipal User currentUser) {
         userService.enableUser(currentUser.getId());
-        return ResponseEntity.ok("Tài khoản đã được kích hoạt");
+        return ResponseEntity.ok(Map.of("message","Tài khoản đã được kích hoạt"));
     }
 
     // Xóa tài khoản
     @DeleteMapping("/delete/me")
-    public ResponseEntity<String> delete(@AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<?> delete(@AuthenticationPrincipal User currentUser) {
         userService.deleteUser(currentUser.getId());
-        return ResponseEntity.ok("Xóa tài khoản thành công");
+        return ResponseEntity.ok(Map.of("message","Xóa tài khoản thành công"));
     }
 }

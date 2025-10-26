@@ -1,10 +1,12 @@
 package j2ee.ourteam.services.user;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import j2ee.ourteam.services.aws.S3Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
@@ -20,12 +22,15 @@ import j2ee.ourteam.models.user.UserResponseDTO;
 import j2ee.ourteam.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements IUserService {
 
   private final UserRepository userRepository;
+
+  private final S3Service s3Service;
 
   private final UserMapper userMapper;
 
@@ -52,7 +57,8 @@ public class UserServiceImpl implements IUserService {
 
   @Override
   public UserProfileResponseDTO updateMyProfile(UUID currentUserId, UpdateUserProfileDTO updateDTO) {
-    User user = userRepository.findById(currentUserId).orElse(null);
+    User user = userRepository.findById(currentUserId)
+            .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
     if (updateDTO.getEmail() != null && !updateDTO.getEmail().isBlank()) {
       user.setEmail(updateDTO.getEmail());
     }
@@ -68,7 +74,23 @@ public class UserServiceImpl implements IUserService {
     return userMapper.toUserProfileResponseDTO(user);
   }
 
-  @Override
+    @Override
+    public String updateAvatar(UUID currentUserId, MultipartFile avatarFile) throws IOException {
+        User user = userRepository.findById(currentUserId)
+            .orElseThrow(()-> new EntityNotFoundException("Không tìm thấy người dùng"));
+
+        if (user.getAvatarS3Key() != null && !user.getAvatarS3Key().isBlank()) {
+            s3Service.deleteFile(user.getAvatarS3Key());
+        }
+        String newAvatarUrl = s3Service.uploadFile(avatarFile);
+
+        user.setAvatarS3Key(newAvatarUrl);
+        userRepository.save(user);
+
+        return newAvatarUrl;
+    }
+
+    @Override
   public void disableUser(UUID currentUserId) {
     User user = userRepository.findById(currentUserId)
         .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));

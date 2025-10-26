@@ -49,14 +49,14 @@ public class AuthController {
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(15 * 60);
         accessTokenCookie.setAttribute("SameSite", "None");
-        // accessTokenCookie.setSecure(true);
+        accessTokenCookie.setSecure(false);
 
         Cookie refreshTokenCookie = new Cookie("refresh_token", data.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setPath("/auth/refresh");
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
         refreshTokenCookie.setAttribute("SameSite", "None");
-        // refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setSecure(false);
 
         response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);
@@ -80,7 +80,7 @@ public class AuthController {
         newAccessTokenCookie.setPath("/");
         newAccessTokenCookie.setMaxAge(60 * 15);
         newAccessTokenCookie.setAttribute("SameSite", "None");
-        newAccessTokenCookie.setSecure(true);
+        newAccessTokenCookie.setSecure(false);
 
         response.addCookie(newAccessTokenCookie);
 
@@ -98,18 +98,20 @@ public class AuthController {
 
         authService.logout(refreshToken);
 
-        // ✅ Xóa cookie ở trình duyệt
+        // Xóa cookie ở trình duyệt
         Cookie accessCookie = new Cookie("access_token", "");
         accessCookie.setPath("/");
         accessCookie.setMaxAge(0);
         accessCookie.setHttpOnly(true);
         accessCookie.setAttribute("SameSite", "None");
+        accessCookie.setSecure(false);
 
         Cookie refreshCookie = new Cookie("refresh_token", "");
         refreshCookie.setPath("/auth/refresh");
         refreshCookie.setMaxAge(0);
         refreshCookie.setHttpOnly(true);
         refreshCookie.setAttribute("SameSite", "None");
+        refreshCookie.setSecure(false);
 
         response.addCookie(accessCookie);
         response.addCookie(refreshCookie);
@@ -147,19 +149,19 @@ public class AuthController {
         authService.changePassword(username, request);
 
         // Xóa cookie khi đổi mật khẩu thành công
-        Cookie accessCookie = new Cookie("accessToken", null);
+        Cookie accessCookie = new Cookie("access_token", null);
         accessCookie.setPath("/");
         accessCookie.setMaxAge(0);
         accessCookie.setHttpOnly(true);
-        accessCookie.setSecure(true);
         accessCookie.setAttribute("SameSite", "None");
+        accessCookie.setSecure(false);
 
         Cookie refreshCookie = new Cookie("refresh_token", null);
         refreshCookie.setPath("/auth/refresh");
         refreshCookie.setMaxAge(0);
         refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(true);
         refreshCookie.setAttribute("SameSite", "None");
+        refreshCookie.setSecure(false);
 
         httpResponse.addCookie(accessCookie);
         httpResponse.addCookie(refreshCookie);

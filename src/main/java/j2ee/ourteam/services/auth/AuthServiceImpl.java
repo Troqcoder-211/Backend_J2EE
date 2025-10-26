@@ -7,6 +7,8 @@ import j2ee.ourteam.entities.*;
 import j2ee.ourteam.repositories.PresenceRepository;
 import j2ee.ourteam.services.mail.IMailService;
 import j2ee.ourteam.services.otp.IOtpService;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -54,7 +56,7 @@ public class AuthServiceImpl implements IAuthService {
                         request.getPassword()));
 
         var user = userRepository.findByUserName(request.getUserName())
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+                .orElseThrow(() -> new EntityNotFoundException("Tài khoản không tồn tại"));
 
         Device device = Device.builder()
                 .user(user)
@@ -103,7 +105,7 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     public void register(RegisterRequestDTO request) {
         if (userRepository.findByUserName(request.getUserName()).isPresent()) {
-            throw new RuntimeException("Tên đăng nhập đã tồn tại");
+            throw new EntityExistsException("Tên đăng nhập đã tồn tại");
         }
         if (request.getPassword().length() < 8) {
             throw new RuntimeException("Mật khẩu không hợp lệ");
@@ -152,7 +154,7 @@ public class AuthServiceImpl implements IAuthService {
         }
 
         User user = userRepository.findByUserName(username)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
 
         if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
             throw new RuntimeException("Mật khẩu không trùng khớp");
@@ -168,7 +170,7 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     public void handleForgotPassword(ForgotPasswordRequestDTO dto) {
         User user = userRepository.findByUserName(dto.getUserName())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
 
         PasswordResetOtp otp = otpService.generateOtp(user);
         mailService.sendTextMail(user.getEmail(), otp);
@@ -182,7 +184,7 @@ public class AuthServiceImpl implements IAuthService {
         }
 
         User user = userRepository.findByUserName(dto.getUsername())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
 
         boolean isOtpValid = otpService.verifyOtp(user.getId(), dto.getOtpCode());
         if (!isOtpValid) {
