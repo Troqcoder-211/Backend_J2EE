@@ -42,7 +42,7 @@ public class UserServiceImpl implements IUserService {
     Pageable pageable = PageRequest.of(page, limit);
 
     Page<User> users = (request.getUserName() != null && !request.getUserName().isBlank())
-        ? userRepository.findByUserNameContainingIgnoreCase(request.getUserName(), pageable)
+        ? userRepository.findByUserNameContaining(request.getUserName(), pageable)
         : userRepository.findAll(pageable);
 
     Page<UserResponseDTO> dtoPage = users.map(userMapper::toUserResponseDTO);
