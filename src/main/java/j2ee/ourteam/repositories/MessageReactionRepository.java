@@ -1,8 +1,16 @@
 package j2ee.ourteam.repositories;
 
+import j2ee.ourteam.entities.Message;
 import j2ee.ourteam.entities.MessageReaction;
 import j2ee.ourteam.entities.MessageReactionId;
+import j2ee.ourteam.entities.User;
+
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MessageReactionRepository extends JpaRepository<MessageReaction, MessageReactionId> {
+  Optional<MessageReaction> findByMessageAndUser(Message message, User user);
+
+  void deleteByMessageAndUserAndIdEmoji(Message message, User user, String emoji);
 }

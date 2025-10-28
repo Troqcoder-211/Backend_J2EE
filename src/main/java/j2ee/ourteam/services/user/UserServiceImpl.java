@@ -6,9 +6,6 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import j2ee.ourteam.entities.User;
-import j2ee.ourteam.repositories.UserRepository;
-
 @Service
 public class UserServiceImpl implements IUserService {
 

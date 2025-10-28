@@ -4,14 +4,17 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.util.UUID;
 
-public class ValidUUIDValidator implements ConstraintValidator<ValidUUID, String> {
+public class ValidUUIDValidator implements ConstraintValidator<ValidUUID, UUID> {
 
   @Override
-  public boolean isValid(String value, ConstraintValidatorContext context) {
-    if (value == null || value.isBlank())
-      return true; // cho phép null hoặc rỗng
+  public boolean isValid(UUID value, ConstraintValidatorContext context) {
+    // Cho phép null (nếu không muốn thì đổi lại return false)
+    if (value == null)
+      return true;
+
     try {
-      UUID.fromString(value);
+      // Thử parse lại để kiểm tra UUID hợp lệ
+      UUID.fromString(value.toString());
       return true;
     } catch (IllegalArgumentException e) {
       return false;

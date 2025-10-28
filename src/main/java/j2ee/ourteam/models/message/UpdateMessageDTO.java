@@ -1,6 +1,6 @@
 package j2ee.ourteam.models.message;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -15,5 +15,5 @@ public class UpdateMessageDTO {
   private String content;
 
   @Builder.Default
-  private LocalDate editedAt = LocalDate.now();
+  private LocalDateTime editedAt = LocalDateTime.now();
 }

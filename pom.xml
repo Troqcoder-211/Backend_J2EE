@@ -55,7 +55,7 @@
 		  <version>2.25.61</version>
 		</dependency>
 		
-
+		<!-- Security -->
 		<dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-security</artifactId>
@@ -86,6 +86,11 @@
 			<artifactId>spring-ai-starter-model-openai</artifactId>
 		</dependency> -->
 
+		<dependency>
+  	  <groupId>org.springframework.boot</groupId>
+  	  <artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -101,7 +106,11 @@
 			<optional>true</optional>
 		</dependency>
 
-
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 
 		<!-- <dependency>
 			<groupId>org.springframework.ai</groupId>
@@ -110,32 +119,54 @@
 			<optional>true</optional>
 		</dependency> -->
 
-<!-- Mapper -->
-		<dependency>
-    <groupId>org.modelmapper</groupId>
-    <artifactId>modelmapper</artifactId>
-    <version>2.4.4</version>
+<dependency>
+    <groupId>com.vladmihalcea</groupId>
+    <artifactId>hibernate-types-60</artifactId>
+    <version>2.21.1</version> <!-- Phiên bản mới nhất, phù hợp Hibernate 6 -->
+</dependency>
+
+<dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>2.17.2</version>
     </dependency>
 
-		<dependency>
-    <groupId>org.mapstruct</groupId>
-    <artifactId>mapstruct</artifactId>
-    <version>1.4.2.Final</version>
-</dependency>
 <dependency>
-    <groupId>org.mapstruct</groupId>
-    <artifactId>mapstruct-processor</artifactId>
-    <version>1.4.2.Final</version>
-    <scope>provided</scope>
+    <groupId>io.hypersistence</groupId>
+    <artifactId>hypersistence-utils-hibernate-60</artifactId>
+    <version>3.7.7</version>
 </dependency>
 
+		<!-- Lombok -->
+<dependency>
+  <groupId>org.projectlombok</groupId>
+  <artifactId>lombok</artifactId>
+  <version>1.18.32</version>
+  <scope>provided</scope>
+</dependency>
 
+<!-- MapStruct -->
+<dependency>
+  <groupId>org.mapstruct</groupId>
+  <artifactId>mapstruct</artifactId>
+  <version>1.5.5.Final</version>
+</dependency>
 
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
+<!-- MapStruct processor -->
+<dependency>
+  <groupId>org.mapstruct</groupId>
+  <artifactId>mapstruct-processor</artifactId>
+  <version>1.5.5.Final</version>
+  <scope>provided</scope>
+</dependency>
+
+<!-- Lombok - MapStruct binding (rất quan trọng khi dùng chung) -->
+<dependency>
+  <groupId>org.projectlombok</groupId>
+  <artifactId>lombok-mapstruct-binding</artifactId>
+  <version>0.2.0</version>
+  <scope>provided</scope>
+</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -150,21 +181,22 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-    		<artifactId>jjwt</artifactId>
-    		<version>0.12.6</version>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-mcp-server</artifactId>
 		</dependency>
 
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
+
 			<dependency>
 				<groupId>org.springframework.ai</groupId>
 				<artifactId>spring-ai-bom</artifactId>
-				<version>${spring-ai.version}</version>
+				<version>1.0.3</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 

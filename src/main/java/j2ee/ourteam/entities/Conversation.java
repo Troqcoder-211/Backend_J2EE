@@ -28,6 +28,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(name = "conversations")
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Conversation {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)

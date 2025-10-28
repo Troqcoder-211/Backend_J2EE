@@ -2,9 +2,17 @@ package j2ee.ourteam.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.Instant;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import com.vladmihalcea.hibernate.type.json.JsonType;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "notifications")
@@ -12,7 +20,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Notification {
+public class Notification implements Serializable {
 
   @Id
   @GeneratedValue
@@ -27,18 +35,20 @@ public class Notification {
   private Device device;
 
   // Loại thông báo (ví dụ: MESSAGE, REACTION, SYSTEM, INVITE, v.v.)
-  private String type;
+  @Enumerated(EnumType.STRING)
+  private NotificationType type;
 
   // JSON dữ liệu (Spring sẽ map thành chuỗi)
-  @Lob
   @Column(columnDefinition = "jsonb")
-  private String payload;
+  @JdbcTypeCode(SqlTypes.JSON)
+  private Object payload;
 
   @Builder.Default
   @Column(name = "is_delivered", nullable = false)
   private Boolean isDelivered = false;
 
-  private Instant deliveredAt;
+  @Builder.Default
+  private LocalDateTime deliveredAt = LocalDateTime.now();
 
   @Builder.Default
   @Column(name = "is_read", nullable = false)
@@ -47,4 +57,11 @@ public class Notification {
   @Builder.Default
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt = LocalDateTime.now();
+
+  public enum NotificationType {
+    MESSAGE,
+    REACTION,
+    SYSTEM,
+    INVITE,
+  }
 }
