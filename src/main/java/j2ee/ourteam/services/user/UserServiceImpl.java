@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import j2ee.ourteam.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 @Service
