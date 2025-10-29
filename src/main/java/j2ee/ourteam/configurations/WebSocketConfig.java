@@ -17,10 +17,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         .withSockJS(); // Dự phòng nếu trình duyệt không hỗ trợ WebSocket
   }
 
-  @Override
-  public void configureMessageBroker(MessageBrokerRegistry config) {
-    config.enableSimpleBroker("/topic", "/queue");
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        config.enableSimpleBroker("/topic", "/queue");
+        config.setApplicationDestinationPrefixes("/app");
+        config.setUserDestinationPrefix("/user");
+    }
 
-    config.setApplicationDestinationPrefixes("/app");
-  }
+
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
+    }
 }

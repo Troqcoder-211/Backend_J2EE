@@ -13,8 +13,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
-public class UpdateUserDTO {
-    private String email;
-    private String displayName;
-    private String avatarS3Key;
+public class GetUserListRequestDTO {
+    private String userName;
+    @Builder.Default
+    private int page = 1;
+    @Builder.Default
+    private int limit = 10;
 }

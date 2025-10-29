@@ -1,5 +1,6 @@
 package j2ee.ourteam.models.auth;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,12 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 public class LoginRequestDTO {
-    private String username;
+    @NotBlank(message = "Username không được để trống")
+    private String userName;
+    @NotBlank(message = "Password không được để trống")
     private String password;
+    @NotBlank(message = "Loại thiết bị không được để trống")
+    private String deviceType;
+    @NotBlank(message = "Push token không được để trống")
+    private String pushToken;
 }

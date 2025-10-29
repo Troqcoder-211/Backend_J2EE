@@ -1,131 +1,198 @@
 package j2ee.ourteam.services.auth;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import j2ee.ourteam.entities.*;
+import j2ee.ourteam.repositories.PresenceRepository;
+import j2ee.ourteam.services.mail.IMailService;
+import j2ee.ourteam.services.otp.IOtpService;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import j2ee.ourteam.entities.User;
-import j2ee.ourteam.models.apiresponse.ApiResponse;
 import j2ee.ourteam.models.auth.ChangePasswordRequestDTO;
 import j2ee.ourteam.models.auth.ForgotPasswordRequestDTO;
-import j2ee.ourteam.models.auth.JwtResponseDTO;
+import j2ee.ourteam.models.auth.LoginResponseDTO;
 import j2ee.ourteam.models.auth.LoginRequestDTO;
-import j2ee.ourteam.models.auth.LogoutRequestDTO;
-import j2ee.ourteam.models.auth.RefreshRequestDTO;
 import j2ee.ourteam.models.auth.RegisterRequestDTO;
+import j2ee.ourteam.models.auth.ResetPasswordRequestDTO;
+import j2ee.ourteam.repositories.DeviceRepository;
+import j2ee.ourteam.repositories.RefreshTokenRepository;
 import j2ee.ourteam.repositories.UserRepository;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements IAuthService {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    private PasswordEncoder passwordEncoder;
+    private final DeviceRepository deviceRepository;
 
-    private JwtService jwtService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    private AuthenticationManager authenticationManager;
+    private final PresenceRepository presenceRepository;
 
-    public AuthServiceImpl(UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            JwtService jwtService,
-            AuthenticationManager authenticationManager) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
-        this.authenticationManager = authenticationManager;
-    }
+    private final PasswordEncoder passwordEncoder;
+
+    private final JwtService jwtService;
+
+    private final IOtpService otpService;
+
+    private final IMailService mailService;
+
+    private final AuthenticationManager authenticationManager;
 
     @Override
-    public ApiResponse<?> login(LoginRequestDTO request) {
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
-                            request.getPassword()));
+    public LoginResponseDTO login(LoginRequestDTO request, HttpServletResponse response) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUserName(),
+                        request.getPassword()));
 
-            var user = userRepository.findByUserName(request.getUsername())
-                    .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+        var user = userRepository.findByUserName(request.getUserName())
+                .orElseThrow(() -> new EntityNotFoundException("Tài khoản không tồn tại"));
 
-            UserDetails userDetails = org.springframework.security.core.userdetails.User
-                    .withUsername(user.getUserName())
-                    .password(user.getPassword())
-                    .authorities("USER")
-                    .build();
+        Device device = Device.builder()
+                .user(user)
+                .deviceType(request.getDeviceType())
+                .pushToken(request.getPushToken())
+                .lastSeenAt(LocalDateTime.now())
+                .build();
+        deviceRepository.save(device);
 
-            var accessToken = jwtService.generateAccessToken(userDetails);
-            var refreshToken = jwtService.generateRefreshToken(userDetails);
+        var accessToken = jwtService.generateAccessToken(user, device.getId());
+        var refreshToken = jwtService.generateRefreshToken(user, device.getId());
 
-            return new ApiResponse<>(200, "Đăng nhập thành công", new JwtResponseDTO(accessToken, refreshToken));
-        } catch (Exception e) {
-            return new ApiResponse<>(500, "Lỗi khi đăng nhập", null);
+        RefreshToken refreshTokendb = RefreshToken.builder()
+                .token(refreshToken)
+                .user(user)
+                .device(device)
+                .expiresAt(LocalDateTime.now().plusDays(7))
+                .build();
+        refreshTokenRepository.save(refreshTokendb);
+
+        LoginResponseDTO dto = new LoginResponseDTO();
+        dto.setAccessToken(accessToken);
+        dto.setRefreshToken(refreshToken);
+        dto.setDeviceId(device.getId());
+
+        return dto;
+    }
+
+
+    @Override
+    public String refreshAccessToken(String refreshToken) {
+        UUID deviceId = jwtService.extractDeviceId(refreshToken);
+
+        RefreshToken refresh = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("Refresh token không hợp lệ hoặc bị thu hồi"));
+
+        if (refresh.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Refresh token đã hết hạn");
         }
 
+        User user = refresh.getUser();
+        return jwtService.generateAccessToken(user, deviceId);
     }
 
-    @Override
-    public ApiResponse<?> refreshToken(RefreshRequestDTO refreshTokenRequestDTO) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'refreshToken'");
-    }
 
     @Override
-    public ApiResponse<?> register(RegisterRequestDTO request) {
-        try {
-            if (userRepository.findByUserName(request.getUsername()).isPresent()) {
-                return new ApiResponse<>(400, "Tên đăng nhập đã tồn tại", false);
-            }
-            if (request.getPassword().length() < 8) {
-                return new ApiResponse<>(401, "Mật khẩu không hợp lệ", false);
-            }
-
-            User user = User.builder()
-                    .userName(request.getUsername())
-                    .password(passwordEncoder.encode(request.getPassword()))
-                    .email(request.getEmail())
-                    .displayName(request.getDisplayName())
-                    .avatarS3Key("")
-                    .build();
-
-            userRepository.save(user);
-
-            return new ApiResponse<>(200, "Tạo tài khoản thành công", true);
-        } catch (Exception e) {
-            return new ApiResponse<>(500, "Lỗi khi đăng ký", false);
+    public void register(RegisterRequestDTO request) {
+        if (userRepository.findByUserName(request.getUserName()).isPresent()) {
+            throw new EntityExistsException("Tên đăng nhập đã tồn tại");
+        }
+        if (request.getPassword().length() < 8) {
+            throw new RuntimeException("Mật khẩu không hợp lệ");
         }
 
+        User user = User.builder()
+                .userName(request.getUserName())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .displayName(request.getDisplayName())
+                .avatarS3Key("")
+                .email(request.getEmail())
+                .build();
+
+        userRepository.save(user);
+
+        Presence presence = Presence.builder()
+                .userId(user.getId())
+                .isOnline(false)
+                .lastSeenAt(LocalDateTime.now())
+                .build();
+        presenceRepository.save(presence);
     }
 
-    @Override
-    public ApiResponse<?> logout(LogoutRequestDTO logoutRequestDTO) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'logout'");
-    }
 
     @Override
-    public ApiResponse<?> changePassword(ChangePasswordRequestDTO changePasswordRequestDTO) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'changePassword'");
+    public void logout(String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new RuntimeException("Token không hợp lệ");
+        }
+
+        Device device = deviceRepository.findById(jwtService.extractDeviceId(refreshToken))
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thiết bị"));
+
+        User user = userRepository.findByUserName(jwtService.extractUsername(refreshToken))
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        refreshTokenRepository.deleteByUserAndDevice(user, device);
+        deviceRepository.delete(device);
     }
 
-    @Override
-    public ApiResponse<?> forgotPassword(ForgotPasswordRequestDTO forgotPasswordRequestDTO) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'forgotPassword'");
-    }
 
     @Override
-    public Object getCurrentUser(String username) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getCurrentUser'");
+    public void changePassword(String username, ChangePasswordRequestDTO dto) {
+        if (dto.getNewPassword().length() < 8) {
+            throw new RuntimeException("Mật khẩu không hợp lệ");
+        }
+
+        User user = userRepository.findByUserName(username)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
+
+        if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Mật khẩu không trùng khớp");
+        }
+
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
+
+        refreshTokenRepository.deleteAllByUserId(user.getId());
     }
 
+
     @Override
-    public ApiResponse<?> changePassword(String username, ChangePasswordRequestDTO request) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'changePassword'");
+    public void handleForgotPassword(ForgotPasswordRequestDTO dto) {
+        User user = userRepository.findByUserName(dto.getUserName())
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
+
+        PasswordResetOtp otp = otpService.generateOtp(user);
+        mailService.sendTextMail(user.getEmail(), otp);
+    }
+
+
+    @Override
+    public void resetPassword(ResetPasswordRequestDTO dto) {
+        if (dto.getNewPassword().length() < 8) {
+            throw new RuntimeException("Mật khẩu không hợp lệ");
+        }
+
+        User user = userRepository.findByUserName(dto.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
+
+        boolean isOtpValid = otpService.verifyOtp(user.getId(), dto.getOtpCode());
+        if (!isOtpValid) {
+            throw new RuntimeException("OTP không hợp lệ hoặc đã hết hạn");
+        }
+
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
     }
 
 }

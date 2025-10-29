@@ -1,5 +1,7 @@
 package j2ee.ourteam.models.auth;
 
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,8 +15,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
-public class JwtResponseDTO {
+public class LoginResponseDTO {
     private String accessToken;
     private String refreshToken;
-    private final String tokenType = "Bearer";
+    private UUID deviceId;
 }

@@ -2,6 +2,7 @@ package j2ee.ourteam.models.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,11 +16,14 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
-public class ChangePasswordRequestDTO {
-    @NotBlank(message = "Password không được để trống")
-    private String oldPassword;
+public class ResetPasswordRequestDTO {
+    @NotBlank
+    private String username;
 
-    @NotBlank(message = "Password không được để trống")
+    @NotBlank
+    private String otpCode;
+
+    @NotBlank
     @Pattern(
             regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,128}$",
             message = "Password phải có ít nhất 8 ký tự, gồm chữ và số"
