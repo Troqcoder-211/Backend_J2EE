@@ -51,6 +51,7 @@ public class NotificationServiceImpl implements INotificationService {
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
     List<Device> devices = deviceRepository.findByUserId(user.getId());
+
     try {
       List<Notification> notifications = devices.stream()
           .<Notification>map(device -> notificationMapper.toEntity(createDto)).toList();
