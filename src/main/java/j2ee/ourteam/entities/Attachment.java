@@ -1,6 +1,6 @@
 package j2ee.ourteam.entities;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -40,6 +40,12 @@ public class Attachment {
   @JoinColumn(name = "conversation_id")
   private Conversation conversation;
 
+  @Column(name = "filename")
+  private String filename;
+
+  @Column(name = "mime_type")
+  private String mimeType;
+
   @Column(name = "s3_bucket", nullable = false)
   private String s3Bucket;
 
@@ -49,12 +55,6 @@ public class Attachment {
   @Column(name = "thumbnail_s3_key")
   private String thumbnailS3Key;
 
-  @Column(name = "filename")
-  private String filename;
-
-  @Column(name = "mime_type")
-  private String mimeType;
-
   @Column(name = "size_bytes")
   private Long sizeBytes;
 
@@ -63,7 +63,7 @@ public class Attachment {
 
   @Builder.Default
   @Column(name = "created_at", nullable = false)
-  private LocalDate createdAt = LocalDate.now();
+  private LocalDateTime createdAt = LocalDateTime.now();
 
   @Builder.Default
   @ManyToMany(mappedBy = "attachments")

@@ -5,8 +5,8 @@ import jakarta.validation.Payload;
 import java.lang.annotation.*;
 
 @Documented
-@Constraint(validatedBy = ValidUUIDValidator.class)
-@Target({ ElementType.FIELD })
+@Constraint(validatedBy = ValidUUIDValidator.class) // trỏ đến class validator
+@Target({ ElementType.FIELD, ElementType.PARAMETER, ElementType.TYPE_USE })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidUUID {
   String message() default "Invalid UUID format";

@@ -17,4 +17,5 @@ public interface GenericCrudService<E, // Entity (đại diện cho table trong 
   Res update(ID id, Req dto);
 
   void deleteById(ID id);
+
 }

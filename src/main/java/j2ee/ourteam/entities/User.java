@@ -69,7 +69,7 @@ public class User {
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ConversationMember> conversationMembers;
 
-  @OneToMany(mappedBy = "created_by", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Conversation> createdConversations;
 
   @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -103,4 +103,11 @@ public class User {
     this.updatedAt = LocalDateTime.now();
   }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +  // Chỉ in ID hoặc field đơn giản
+                ", username='" + userName + '\'' +
+                '}';  // Không in createdConversations hoặc các list lazy
+    }
 }

@@ -1,6 +1,6 @@
 package j2ee.ourteam.entities;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,9 +17,17 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "conversations")
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Conversation {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -37,10 +45,10 @@ public class Conversation {
 
   @ManyToOne
   @JoinColumn(name = "created_by")
-  private User created_by;
+  private User createdBy;
 
   @Column(name = "created_at")
-  private LocalDate createdAt;
+  private LocalDateTime createdAt;
 
   @Column(name = "is_archived")
   private Boolean isArchived;
@@ -56,7 +64,7 @@ public class Conversation {
 
   @PrePersist
   protected void onCreate() {
-    this.createdAt = LocalDate.now();
+    this.createdAt = LocalDateTime.now();
   }
 
   public enum ConversationType {

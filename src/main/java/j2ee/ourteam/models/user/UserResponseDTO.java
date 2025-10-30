@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Data
 @Getter
 @Setter
@@ -14,8 +16,9 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 public class UserResponseDTO {
-    private String id;
+    private UUID id;
     private String username;
+    private String password;
     private String email;
     private String displayName;
     private String avatarS3Key;

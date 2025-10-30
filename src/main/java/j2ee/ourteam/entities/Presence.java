@@ -2,8 +2,7 @@ package j2ee.ourteam.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.Instant;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -27,9 +26,9 @@ public class Presence {
   @Column(name = "is_online", nullable = false)
   private Boolean isOnline = false;
 
-  private Instant lastSeenAt;
+  private LocalDateTime lastSeenAt;
 
   @Builder.Default
   @Column(name = "updated_at", nullable = false)
-  private LocalDate updatedAt = LocalDate.now();
+  private LocalDateTime updatedAt = LocalDateTime.now();
 }

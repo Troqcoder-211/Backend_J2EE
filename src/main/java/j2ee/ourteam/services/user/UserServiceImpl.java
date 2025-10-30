@@ -4,10 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-
-import j2ee.ourteam.entities.User;
 import j2ee.ourteam.repositories.UserRepository;
+import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements IUserService {

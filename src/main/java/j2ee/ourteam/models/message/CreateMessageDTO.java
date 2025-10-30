@@ -1,10 +1,13 @@
 package j2ee.ourteam.models.message;
 
-import org.hibernate.validator.constraints.UUID;
+import java.util.List;
+import java.util.UUID;
 
-import j2ee.ourteam.models.enums.Request.MessageTypeRequest;
+import j2ee.ourteam.enums.message.MessageTypeEnum;
 import j2ee.ourteam.validators.ValidUUID;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,20 +17,21 @@ import lombok.Data;
 @Builder
 public class CreateMessageDTO {
 
-  @UUID
-  private String conversationId;
+  @NotNull(message = "Conversation ID cannot be null")
+  private UUID conversationId;
 
-  @UUID
-  private String sendeId;
+  @NotNull(message = "Sender ID cannot be null")
+  private UUID senderId;
 
-  @NotBlank(message = "Content isn't empty")
+  @NotBlank(message = "Content cannot be empty")
   private String content;
 
   @ValidUUID
-  private String replyTo;
+  private UUID replyTo;
 
-  @NotBlank(message = "Message Type isn't empty")
   @Builder.Default
-  private MessageTypeRequest messageType = MessageTypeRequest.TEXT;
+  private MessageTypeEnum messageType = MessageTypeEnum.TEXT;
 
+  @Size(max = 10, message = "You can attach up to 10 files per message")
+  private List<@ValidUUID UUID> attachmentIds;
 }

@@ -1,6 +1,6 @@
 package j2ee.ourteam.entities;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
@@ -38,5 +38,5 @@ public class MessageRead {
 
   @Builder.Default
   @Column(name = "read_at", nullable = false)
-  private LocalDate readAt = LocalDate.now();
+  private LocalDateTime readAt = LocalDateTime.now();
 }
