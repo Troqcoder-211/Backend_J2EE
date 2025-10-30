@@ -6,9 +6,6 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import j2ee.ourteam.entities.Device;
-import j2ee.ourteam.repositories.DeviceRepository;
-
 @Service
 public class DeviceServiceImpl implements IDeviceService {
 

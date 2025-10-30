@@ -1,6 +1,5 @@
 package j2ee.ourteam.configurations;
 
-import jdk.jfr.Enabled;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,11 +13,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)  // tắt CSRF cho API
+                .csrf(AbstractHttpConfigurer::disable) // tắt CSRF cho API
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/ai/**", "/messages/**").permitAll()
-                        .anyRequest().authenticated()
-                );
+                        .anyRequest().authenticated());
         return http.build();
     }
 }

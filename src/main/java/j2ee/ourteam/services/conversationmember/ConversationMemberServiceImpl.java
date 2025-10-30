@@ -5,9 +5,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import j2ee.ourteam.entities.ConversationMember;
 import j2ee.ourteam.entities.ConversationMemberId;
-import j2ee.ourteam.repositories.ConversationMemberRepository;
 
 @Service
 public class ConversationMemberServiceImpl implements IConversationMemberService {

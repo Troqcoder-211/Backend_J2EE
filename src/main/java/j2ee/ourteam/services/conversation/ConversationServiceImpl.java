@@ -6,9 +6,6 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import j2ee.ourteam.entities.Conversation;
-import j2ee.ourteam.repositories.ConversationRepository;
-
 @Service
 public class ConversationServiceImpl implements IConversationService {
 
