@@ -22,8 +22,7 @@ public interface ConversationMapper {
     @Mapping(target = "messages", ignore = true)
     Conversation toEntity(CreateConversationDTO dto);
 
-
-    //Update
+    // Update
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "conversationType", ignore = true)
@@ -34,7 +33,7 @@ public interface ConversationMapper {
     @Mapping(target = "messages", ignore = true)
     void updateEntityFromDto(UpdateConversationDTO dto, @MappingTarget Conversation entity);
 
-    //isArchived
+    // isArchived
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "name", ignore = true)
@@ -45,6 +44,5 @@ public interface ConversationMapper {
     @Mapping(target = "members", ignore = true)
     @Mapping(target = "messages", ignore = true)
     void updateArchivedFromDto(ArchivedConversationDTO dto, @MappingTarget Conversation entity);
-
 
 }
