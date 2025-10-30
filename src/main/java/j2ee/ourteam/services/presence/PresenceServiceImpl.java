@@ -1,45 +1,72 @@
 package j2ee.ourteam.services.presence;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import j2ee.ourteam.models.presence.PresenceResponseDTO;
+import j2ee.ourteam.repositories.ConversationMemberRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
-import j2ee.ourteam.entities.Presence;
-import j2ee.ourteam.repositories.PresenceRepository;
+import java.time.Duration;
+import java.util.*;
 
 @Service
 public class PresenceServiceImpl implements IPresenceService {
 
-  @Override
-  public List<Object> findAll() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'findAll'");
-  }
+    private final StringRedisTemplate redisTemplate;
+    private final ValueOperations<String, String> ops;
+    private static final Duration TTL = Duration.ofSeconds(60);
 
-  @Override
-  public Optional<Object> findById(UUID id) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'findById'");
-  }
+    @Autowired
+    private ConversationMemberRepository conversationMemberRepository;
+    private static final String PRESENCE_KEY_PREFIX = "presence:";
 
-  @Override
-  public Object create(Object dto) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'create'");
-  }
+    public PresenceServiceImpl(StringRedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+        this.ops = redisTemplate.opsForValue();
+    }
 
-  @Override
-  public Object update(UUID id, Object dto) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'update'");
-  }
+    @Override
+    public void markOnline(String userId) {
+        ops.set(key(userId), "online", TTL);
+    }
 
-  @Override
-  public void deleteById(UUID id) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
-  }
+    @Override
+    public void markOffline(String userId) {
+        ops.set(key(userId), "offline", TTL);
+    }
 
+    @Override
+    public void refreshTtl(String userId) {
+        redisTemplate.expire(key(userId), TTL);
+    }
+
+    @Override
+    public PresenceResponseDTO getStatuses(UUID userId) {
+        List<UUID> relatedUserIds = conversationMemberRepository.findRelatedUserIdsByUserId(userId);
+        List<String> keys = relatedUserIds.stream().map(id -> PRESENCE_KEY_PREFIX + id).toList();
+
+        Map<UUID, String> result = new HashMap<>();
+        int index = 0;
+        for (String key : keys) {
+            String status = redisTemplate.opsForValue().get(key);
+            result.put(relatedUserIds.get(index), status != null ? status : "offline");
+            index += 1;
+        }
+
+        PresenceResponseDTO response;
+        response = PresenceResponseDTO.builder().mapPresenceResponse(result).build();
+        return response;
+    }
+
+    @Override
+    public String key(String userId) {
+        return "user:" + userId + ":status";
+    }
+
+    @Override
+    public void publishPresenceUpdate(String payload) {
+        redisTemplate.convertAndSend("presence_updates", payload);
+    }
 }

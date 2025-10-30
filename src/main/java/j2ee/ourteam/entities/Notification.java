@@ -7,12 +7,10 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
-import com.vladmihalcea.hibernate.type.json.JsonType;
-
 import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
+
+import j2ee.ourteam.enums.notification.NotificationTypeEnum;
 
 @Entity
 @Table(name = "notifications")
@@ -36,7 +34,7 @@ public class Notification implements Serializable {
 
   // Loại thông báo (ví dụ: MESSAGE, REACTION, SYSTEM, INVITE, v.v.)
   @Enumerated(EnumType.STRING)
-  private NotificationType type;
+  private NotificationTypeEnum type;
 
   // JSON dữ liệu (Spring sẽ map thành chuỗi)
   @Column(columnDefinition = "jsonb")
@@ -58,10 +56,4 @@ public class Notification implements Serializable {
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt = LocalDateTime.now();
 
-  public enum NotificationType {
-    MESSAGE,
-    REACTION,
-    SYSTEM,
-    INVITE,
-  }
 }

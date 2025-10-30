@@ -3,7 +3,7 @@ package j2ee.ourteam.services.attachment;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
+// import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,7 +14,7 @@ import j2ee.ourteam.entities.Conversation;
 import j2ee.ourteam.entities.User;
 import j2ee.ourteam.mapping.AttachmentMapper;
 import j2ee.ourteam.models.attachment.AttachmentDTO;
-import j2ee.ourteam.models.attachment.AttachmentDownloadDTO;
+// import j2ee.ourteam.models.attachment.AttachmentDownloadDTO;
 import j2ee.ourteam.repositories.AttachmentRepository;
 import j2ee.ourteam.repositories.ConversationRepository;
 import j2ee.ourteam.repositories.UserRepository;
@@ -87,7 +87,7 @@ public class AttachmentServiceImpl implements IAttachmentService {
         key = key.substring(key.lastIndexOf("/") + 1);
       }
 
-      Resource resource = s3Service.download(key);
+      // Resource resource = s3Service.download(key);
 
       // return AttachmentDownloadDTO.builder()
       // .filename(attachment.getFilename())

@@ -23,9 +23,9 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "devices")
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class Device {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)

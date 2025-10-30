@@ -13,7 +13,6 @@ import j2ee.ourteam.models.conversation_member.UpdateRoleDTO;
 import j2ee.ourteam.services.conversation.IConversationService;
 import j2ee.ourteam.services.conversationmember.IConversationMemberService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +20,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -30,7 +28,6 @@ public class ConversationController {
     private final IConversationService _conversationService;
     private final IConversationMemberService _conversationMemberService;
 
-    @Autowired
 
     public ConversationController(IConversationService conversationService,
             IConversationMemberService conversationMemberService) {

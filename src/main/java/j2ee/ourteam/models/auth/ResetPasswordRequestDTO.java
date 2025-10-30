@@ -15,14 +15,14 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @NoArgsConstructor
-public class ChangePasswordRequestDTO {
-    @NotBlank(message = "Password không được để trống")
-    private String oldPassword;
+public class ResetPasswordRequestDTO {
+    @NotBlank
+    private String username;
 
-    @NotBlank(message = "Password không được để trống")
-    @Pattern(
-            regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,128}$",
-            message = "Password phải có ít nhất 8 ký tự, gồm chữ và số"
-    )
+    @NotBlank
+    private String otpCode;
+
+    @NotBlank
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,128}$", message = "Password phải có ít nhất 8 ký tự, gồm chữ và số")
     private String newPassword;
 }

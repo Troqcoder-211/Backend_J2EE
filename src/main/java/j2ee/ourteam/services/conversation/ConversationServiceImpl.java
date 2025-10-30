@@ -13,7 +13,6 @@ import j2ee.ourteam.models.conversation.UpdateConversationDTO;
 import j2ee.ourteam.repositories.ConversationMemberRepository;
 import j2ee.ourteam.repositories.ConversationRepository;
 import j2ee.ourteam.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,18 +29,16 @@ public class ConversationServiceImpl implements IConversationService {
     private final UserRepository _userRepository;
     private final ConversationMemberRepository _conversationMemberRepository;
 
-    @Autowired
     public ConversationServiceImpl(ConversationMapper conversationMapper,
-                                   ConversationRepository conversationRepository,
-                                   UserRepository userRepository, ConversationMemberRepository conversationMemberRepository) {
+            ConversationRepository conversationRepository,
+            UserRepository userRepository, ConversationMemberRepository conversationMemberRepository) {
         _conversationMapper = conversationMapper;
         _conversationRepository = conversationRepository;
         _userRepository = userRepository;
         _conversationMemberRepository = conversationMemberRepository;
     }
 
-
-    //====================Bỏ=========================
+    // ====================Bỏ=========================
     @Override
     public List<ConversationDTO> findAll() {
         return List.of();
@@ -66,17 +63,7 @@ public class ConversationServiceImpl implements IConversationService {
     public void deleteById(UUID uuid) {
 
     }
-    //====================================================
-
-
-
-
-
-
-
-
-
-
+    // ====================================================
 
     // POST /conversations (tạo mới với user)
     @Transactional
@@ -134,7 +121,7 @@ public class ConversationServiceImpl implements IConversationService {
     // DELETE /conversations/{id} (xóa, code cũ dùng deleteById nhưng với user)
     @Transactional
     @Override
-    public ResponseDTO<Void> deleteConversationById (UUID id, User currentUser) {
+    public ResponseDTO<Void> deleteConversationById(UUID id, User currentUser) {
         Optional<User> userOpt = _userRepository.findById(currentUser.getId());
         if (userOpt.isEmpty()) {
             return ResponseDTO.error("User not found");

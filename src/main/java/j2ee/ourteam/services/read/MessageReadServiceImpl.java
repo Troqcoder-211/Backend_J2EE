@@ -5,9 +5,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import j2ee.ourteam.entities.MessageRead;
 import j2ee.ourteam.entities.MessageReadId;
-import j2ee.ourteam.repositories.MessageReadRepository;
 
 @Service
 public class MessageReadServiceImpl implements IMessageReadService {
