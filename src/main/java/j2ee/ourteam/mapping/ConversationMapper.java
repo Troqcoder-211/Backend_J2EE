@@ -12,6 +12,7 @@ import j2ee.ourteam.entities.Conversation;
 public interface ConversationMapper {
 
     @Mapping(target = "createdBy", expression = "java(entity.getCreatedBy() != null ? entity.getCreatedBy().getUserName() : null)")
+    @Mapping(target = "lastMessage", ignore = true)
     ConversationDTO toDto(Conversation entity);
 
     @Mapping(target = "id", ignore = true)
