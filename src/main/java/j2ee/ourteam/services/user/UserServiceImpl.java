@@ -1,7 +1,6 @@
 package j2ee.ourteam.services.user;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

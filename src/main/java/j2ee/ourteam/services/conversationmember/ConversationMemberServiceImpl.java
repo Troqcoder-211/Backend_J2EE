@@ -234,8 +234,19 @@ public class ConversationMemberServiceImpl implements IConversationMemberService
         ConversationMember member = memberOpt.get();
 
         if (member.getRole() == Role.OWNER) {
-            return ResponseDTO.error("Owner cannot leave. Transfer ownership first");
+            List<ConversationMember> otherMembers = _conversationMemberRepository.findByIdConversationId(conversationId)
+                    .stream()
+                    .filter(m -> !m.getUser().getId().equals(user.getId()))
+                    .toList();
+
+            boolean hasOtherAdminOrOwner = otherMembers.stream()
+                    .anyMatch(m->m.getRole() == Role.ADMIN || m.getRole()  == Role.OWNER);
+
+            if (!hasOtherAdminOrOwner){
+                return ResponseDTO.error("Owner cannot leave. Transfer ownership first");
+            }
         }
+
 
         _conversationMemberRepository.delete(member);
         return ResponseDTO.success("Rời nhóm thành công", null);

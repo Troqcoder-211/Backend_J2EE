@@ -10,4 +10,11 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ConversationRepository extends JpaRepository<Conversation, UUID> {
     List<Conversation> findAllByCreatedBy_UserName(String userName);
+
+    @Query("""
+        SELECT cm.conversation 
+        FROM ConversationMember cm
+        WHERE cm.user.id = :userId
+    """)
+    List<Conversation> findAllByMemberId(UUID userId);
 }

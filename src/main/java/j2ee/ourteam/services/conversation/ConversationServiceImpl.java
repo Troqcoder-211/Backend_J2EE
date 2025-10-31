@@ -10,6 +10,7 @@ import j2ee.ourteam.models.conversation.ArchivedConversationDTO;
 import j2ee.ourteam.models.conversation.ConversationDTO;
 import j2ee.ourteam.models.conversation.CreateConversationDTO;
 import j2ee.ourteam.models.conversation.UpdateConversationDTO;
+import j2ee.ourteam.models.conversation_member.ConversationMemberDTO;
 import j2ee.ourteam.repositories.ConversationMemberRepository;
 import j2ee.ourteam.repositories.ConversationRepository;
 import j2ee.ourteam.repositories.UserRepository;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -82,29 +84,61 @@ public class ConversationServiceImpl implements IConversationService {
     @Transactional
     @Override
     public ResponseDTO<ConversationDTO> createConversation(CreateConversationDTO dto, User currentUser) {
+        // 1️⃣ Kiểm tra user hiện tại
         Optional<User> userOpt = _userRepository.findById(currentUser.getId());
         if (userOpt.isEmpty()) {
             return ResponseDTO.error("User not found");
         }
         User user = userOpt.get();
 
+        // 2️⃣ Tạo conversation
         Conversation conversation = _conversationMapper.toEntity(dto);
         conversation.setCreatedBy(user);
-
         Conversation saved = _conversationRepository.save(conversation);
 
-        // Auto add owner as member with ROLE OWNER
-        ConversationMemberId ownerId = new ConversationMemberId(saved.getId(), user.getId());
+        // 3️⃣ Thêm OWNER (người tạo)
         ConversationMember ownerMember = ConversationMember.builder()
-                .id(ownerId)
+                .id(new ConversationMemberId(saved.getId(), user.getId()))
                 .conversation(saved)
                 .user(user)
                 .role(ConversationMember.Role.OWNER)
+                .isMuted(false)
+                .joinedAt(LocalDateTime.now())
                 .build();
         _conversationMemberRepository.save(ownerMember);
 
+        // 4️⃣ Nếu client có gửi thêm danh sách members thì thêm luôn
+        if (dto.getMembers() != null && !dto.getMembers().isEmpty()) {
+            for (ConversationMemberDTO m : dto.getMembers()) {
+                if (m.getUserId() == null || m.getUserId().equals(user.getId())) {
+                    continue; // bỏ qua owner
+                }
+
+                Optional<User> uOpt = _userRepository.findById(m.getUserId());
+                if (uOpt.isEmpty()) continue;
+                User newUser = uOpt.get();
+
+                ConversationMemberId memberId = new ConversationMemberId(saved.getId(), newUser.getId());
+                if (_conversationMemberRepository.existsById(memberId)) continue;
+
+                ConversationMember member = ConversationMember.builder()
+                        .id(memberId)
+                        .conversation(saved)
+                        .user(newUser)
+                        .role(ConversationMember.Role.MEMBER)
+                        .isMuted(false)
+                        .joinedAt(LocalDateTime.now())
+                        .build();
+
+                _conversationMemberRepository.save(member);
+            }
+        }
+
+        // 5️⃣ Trả về kèm danh sách thành viên thực tế
+        saved.setMembers(_conversationMemberRepository.findByIdConversationId(saved.getId()));
         return ResponseDTO.success("Tạo conversation thành công", _conversationMapper.toDto(saved));
     }
+
 
     // PATCH /conversations/{id} (đổi tên/avatar)
     @Transactional
@@ -179,7 +213,7 @@ public class ConversationServiceImpl implements IConversationService {
             return ResponseDTO.error("User not found");
         }
 
-        List<Conversation> conversations = _conversationRepository.findAllByCreatedBy_UserName(username);
+        List<Conversation> conversations = _conversationRepository.findAllByMemberId(currentUser.getId());
         List<ConversationDTO> dtos = conversations.stream()
                 .map(_conversationMapper::toDto)
                 .collect(Collectors.toList());

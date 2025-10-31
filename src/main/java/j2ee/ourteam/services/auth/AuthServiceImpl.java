@@ -122,9 +122,10 @@ public class AuthServiceImpl implements IAuthService {
         userRepository.save(user);
 
         Presence presence = Presence.builder()
-                .userId(user.getId())
+                .user(user)
                 .isOnline(false)
                 .lastSeenAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
         presenceRepository.save(presence);
     }

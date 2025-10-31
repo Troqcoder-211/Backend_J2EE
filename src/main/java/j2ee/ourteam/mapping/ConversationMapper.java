@@ -8,7 +8,7 @@ import org.mapstruct.*;
 
 import j2ee.ourteam.entities.Conversation;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = { ConversationMemberMapper.class })
 public interface ConversationMapper {
 
     @Mapping(target = "createdBy", expression = "java(entity.getCreatedBy() != null ? entity.getCreatedBy().getUserName() : null)")
