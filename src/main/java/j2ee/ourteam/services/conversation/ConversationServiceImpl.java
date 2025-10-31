@@ -32,18 +32,16 @@ public class ConversationServiceImpl implements IConversationService {
     private final UserRepository _userRepository;
     private final ConversationMemberRepository _conversationMemberRepository;
 
-    @Autowired
     public ConversationServiceImpl(ConversationMapper conversationMapper,
-                                   ConversationRepository conversationRepository,
-                                   UserRepository userRepository, ConversationMemberRepository conversationMemberRepository) {
+            ConversationRepository conversationRepository,
+            UserRepository userRepository, ConversationMemberRepository conversationMemberRepository) {
         _conversationMapper = conversationMapper;
         _conversationRepository = conversationRepository;
         _userRepository = userRepository;
         _conversationMemberRepository = conversationMemberRepository;
     }
 
-
-    //====================Bỏ=========================
+    // ====================Bỏ=========================
     @Override
     public List<ConversationDTO> findAll() {
         return List.of();
@@ -68,17 +66,7 @@ public class ConversationServiceImpl implements IConversationService {
     public void deleteById(UUID uuid) {
 
     }
-    //====================================================
-
-
-
-
-
-
-
-
-
-
+    // ====================================================
 
     // POST /conversations (tạo mới với user)
     @Transactional
@@ -115,11 +103,13 @@ public class ConversationServiceImpl implements IConversationService {
                 }
 
                 Optional<User> uOpt = _userRepository.findById(m.getUserId());
-                if (uOpt.isEmpty()) continue;
+                if (uOpt.isEmpty())
+                    continue;
                 User newUser = uOpt.get();
 
                 ConversationMemberId memberId = new ConversationMemberId(saved.getId(), newUser.getId());
-                if (_conversationMemberRepository.existsById(memberId)) continue;
+                if (_conversationMemberRepository.existsById(memberId))
+                    continue;
 
                 ConversationMember member = ConversationMember.builder()
                         .id(memberId)
@@ -138,7 +128,6 @@ public class ConversationServiceImpl implements IConversationService {
         saved.setMembers(_conversationMemberRepository.findByIdConversationId(saved.getId()));
         return ResponseDTO.success("Tạo conversation thành công", _conversationMapper.toDto(saved));
     }
-
 
     // PATCH /conversations/{id} (đổi tên/avatar)
     @Transactional
@@ -168,7 +157,7 @@ public class ConversationServiceImpl implements IConversationService {
     // DELETE /conversations/{id} (xóa, code cũ dùng deleteById nhưng với user)
     @Transactional
     @Override
-    public ResponseDTO<Void> deleteConversationById (UUID id, User currentUser) {
+    public ResponseDTO<Void> deleteConversationById(UUID id, User currentUser) {
         Optional<User> userOpt = _userRepository.findById(currentUser.getId());
         if (userOpt.isEmpty()) {
             return ResponseDTO.error("User not found");
