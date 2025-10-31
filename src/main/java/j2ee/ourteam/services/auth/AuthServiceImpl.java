@@ -102,7 +102,7 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     public void register(RegisterRequestDTO request) {
-        if (userRepository.findByUserName(request.getUsername()).isPresent()) {
+        if (userRepository.findByUserName(request.getUserName()).isPresent()) {
             throw new EntityExistsException("Tên đăng nhập đã tồn tại");
         }
         if (request.getPassword().length() < 8) {
@@ -110,7 +110,7 @@ public class AuthServiceImpl implements IAuthService {
         }
 
         User user = User.builder()
-                .userName(request.getUsername())
+                .userName(request.getUserName())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .displayName(request.getDisplayName())
                 .avatarS3Key("")
