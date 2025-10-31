@@ -14,6 +14,8 @@ import j2ee.ourteam.models.conversation_member.UpdateRoleDTO;
 import j2ee.ourteam.repositories.ConversationMemberRepository;
 import j2ee.ourteam.repositories.ConversationRepository;
 import j2ee.ourteam.repositories.UserRepository;
+import lombok.AllArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+// @AllArgsConstructor
 public class ConversationMemberServiceImpl implements IConversationMemberService {
 
     private final ConversationMemberMapper _conversationMemberMapper;
@@ -33,9 +36,9 @@ public class ConversationMemberServiceImpl implements IConversationMemberService
 
     @Autowired
     public ConversationMemberServiceImpl(ConversationMemberMapper conversationMemberMapper,
-                                         ConversationRepository conversationRepository,
-                                         UserRepository userRepository,
-                                         ConversationMemberRepository conversationMemberRepository) {
+            ConversationRepository conversationRepository,
+            UserRepository userRepository,
+            ConversationMemberRepository conversationMemberRepository) {
         _conversationMemberMapper = conversationMemberMapper;
         _conversationRepository = conversationRepository;
         _userRepository = userRepository;
@@ -67,7 +70,6 @@ public class ConversationMemberServiceImpl implements IConversationMemberService
 
     }
 
-
     // 2.31: GET danh sách thành viên
     @Override
     public ResponseDTO<List<ConversationMemberDTO>> getMember(UUID conversationId, User currentUser) {
@@ -92,7 +94,8 @@ public class ConversationMemberServiceImpl implements IConversationMemberService
     // 2.32: POST thêm thành viên
     @Transactional
     @Override
-    public ResponseDTO<ConversationMemberDTO> addMember(UUID conversationId, AddConversationMemberDTO dto, User currentUser) {
+    public ResponseDTO<ConversationMemberDTO> addMember(UUID conversationId, AddConversationMemberDTO dto,
+            User currentUser) {
         Optional<User> ownerOpt = _userRepository.findById(currentUser.getId());
         if (ownerOpt.isEmpty()) {
             return ResponseDTO.error("User not found");
@@ -161,7 +164,8 @@ public class ConversationMemberServiceImpl implements IConversationMemberService
     // 2.34: PATCH thay đổi role
     @Transactional
     @Override
-    public ResponseDTO<ConversationMemberDTO> updateRole(UUID conversationId, UUID userId, UpdateRoleDTO dto, User currentUser) {
+    public ResponseDTO<ConversationMemberDTO> updateRole(UUID conversationId, UUID userId, UpdateRoleDTO dto,
+            User currentUser) {
         Optional<User> ownerOpt = _userRepository.findById(currentUser.getId());
         if (ownerOpt.isEmpty()) {
             return ResponseDTO.error("User not found");
@@ -193,7 +197,8 @@ public class ConversationMemberServiceImpl implements IConversationMemberService
     // 2.35: PATCH bật/tắt mute (chỉ self)
     @Transactional
     @Override
-    public ResponseDTO<ConversationMemberDTO> updateMute(UUID conversationId, UUID userId, UpdateMuteDTO dto, User currentUser) {
+    public ResponseDTO<ConversationMemberDTO> updateMute(UUID conversationId, UUID userId, UpdateMuteDTO dto,
+            User currentUser) {
         Optional<User> userOpt = _userRepository.findById(currentUser.getId());
         if (userOpt.isEmpty()) {
             return ResponseDTO.error("User not found");
@@ -240,13 +245,12 @@ public class ConversationMemberServiceImpl implements IConversationMemberService
                     .toList();
 
             boolean hasOtherAdminOrOwner = otherMembers.stream()
-                    .anyMatch(m->m.getRole() == Role.ADMIN || m.getRole()  == Role.OWNER);
+                    .anyMatch(m -> m.getRole() == Role.ADMIN || m.getRole() == Role.OWNER);
 
-            if (!hasOtherAdminOrOwner){
+            if (!hasOtherAdminOrOwner) {
                 return ResponseDTO.error("Owner cannot leave. Transfer ownership first");
             }
         }
-
 
         _conversationMemberRepository.delete(member);
         return ResponseDTO.success("Rời nhóm thành công", null);
