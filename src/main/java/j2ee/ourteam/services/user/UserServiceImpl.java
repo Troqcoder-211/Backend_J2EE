@@ -153,4 +153,30 @@ public class UserServiceImpl implements IUserService {
     throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
   }
 
+  // private final UserRepository userRepository;
+
+  // public UserServiceImpl(UserRepository userRepository) {
+  // this.userRepository = userRepository;
+  // }
+
+  // @Override
+  // public List<User> findAll() {
+  // return userRepository.findAll();
+  // }
+
+  // @Override
+  // public Optional<User> findById(UUID id) {
+  // return userRepository.findById(id);
+  // }
+
+  // @Override
+  // public User save(User entity) {
+  // return userRepository.save(entity);
+  // }
+
+  // @Override
+  // public void deleteById(UUID id) {
+  // userRepository.deleteById(id);
+  // }
+
 }
