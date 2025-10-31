@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import j2ee.ourteam.entities.Conversation;
+import org.springframework.data.jpa.repository.Query;
 
 public interface ConversationRepository extends JpaRepository<Conversation, UUID> {
     List<Conversation> findAllByCreatedBy_UserName(String userName);
