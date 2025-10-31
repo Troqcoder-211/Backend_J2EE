@@ -1,7 +1,5 @@
 package j2ee.ourteam.models.user;
 
-import java.util.UUID;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,4 +18,5 @@ public class UserResponseDTO {
     private String userName;
     private String displayName;
     private String avatarS3Key;
+    private boolean isDisabled;
 }

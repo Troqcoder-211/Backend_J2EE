@@ -1,5 +1,8 @@
 package j2ee.ourteam.models.conversation;
 
+import j2ee.ourteam.entities.Message;
+import j2ee.ourteam.entities.User;
+import j2ee.ourteam.models.conversation_member.ConversationMemberDTO;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -8,6 +11,7 @@ import lombok.Data;
 import j2ee.ourteam.entities.Conversation;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -25,4 +29,11 @@ public class CreateConversationDTO {
     private Conversation.ConversationType conversationType;
 
     private String avatarS3Key;
+
+    private List<ConversationMemberDTO> members;
+
+    // private User createdBy;
+    //
+    // @Builder.Default
+    // private Message.MessageType messageType = Message.MessageType.TEXT;
 }

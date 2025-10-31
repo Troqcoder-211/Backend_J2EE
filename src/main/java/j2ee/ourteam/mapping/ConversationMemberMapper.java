@@ -6,7 +6,6 @@ import j2ee.ourteam.models.conversation_member.AddConversationMemberDTO;
 import j2ee.ourteam.models.conversation_member.ConversationMemberDTO;
 import j2ee.ourteam.models.conversation_member.UpdateMuteDTO;
 import j2ee.ourteam.models.conversation_member.UpdateRoleDTO;
-import org.mapstruct.Mapper;
 import j2ee.ourteam.entities.ConversationMember.Role;
 import org.mapstruct.*;
 
@@ -22,7 +21,7 @@ public interface ConversationMemberMapper {
     @Mapping(target = "lastReadAt", source = "lastReadAt")
     ConversationMemberDTO toDto(ConversationMember entity);
 
-    // Lưu ý: conversation và user cần set ở service vì không có trong DTO
+    // Lưu ý: conversation và user sẽ được set thủ công trong Service
     @Mapping(target = "id", source = "dto", qualifiedByName = "createIdFromAddDto")
     @Mapping(target = "role", source = "role", qualifiedByName = "stringToRole")
     @Mapping(target = "conversation", ignore = true)
@@ -53,7 +52,7 @@ public interface ConversationMemberMapper {
     @Named("stringToRole")
     default Role stringToRole(String roleStr) {
         if (roleStr == null || roleStr.isEmpty()) {
-            return Role.MEMBER;  // Default nếu null
+            return Role.MEMBER;
         }
         try {
             return Role.valueOf(roleStr.toUpperCase());

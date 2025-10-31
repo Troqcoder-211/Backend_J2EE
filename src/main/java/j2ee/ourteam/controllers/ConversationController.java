@@ -27,7 +27,11 @@ import java.util.UUID;
 public class ConversationController {
     private final IConversationService _conversationService;
     private final IConversationMemberService _conversationMemberService;
+<<<<<<< HEAD
 
+=======
+    @Autowired
+>>>>>>> feature/conversation_phuc
 
     public ConversationController(IConversationService conversationService,
             IConversationMemberService conversationMemberService) {
@@ -55,9 +59,8 @@ public class ConversationController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseDTO<ConversationDTO>> createConversation(@RequestBody CreateConversationDTO dto,
-            Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
+    public ResponseEntity<ResponseDTO<ConversationDTO>> createConversation(@RequestBody CreateConversationDTO dto, Authentication authentication){
+        User user =(User) authentication.getPrincipal();
 
         ResponseDTO<ConversationDTO> response = _conversationService.createConversation(dto, user);
         HttpStatus status = response.isSuccess() ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST;
@@ -65,8 +68,7 @@ public class ConversationController {
     }
 
     @PatchMapping(path = "/update/{uuid}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseDTO<ConversationDTO>> updateConversation(@PathVariable UUID uuid,
-            @RequestBody UpdateConversationDTO dto, Authentication authentication) {
+    public ResponseEntity<ResponseDTO<ConversationDTO>> updateConversation(@PathVariable UUID uuid, @RequestBody UpdateConversationDTO dto, Authentication authentication){
         User user = (User) authentication.getPrincipal();
 
         ResponseDTO<ConversationDTO> response = _conversationService.updateConversation(uuid, dto, user);
@@ -75,17 +77,15 @@ public class ConversationController {
     }
 
     @DeleteMapping("/delete/{uuid}")
-    public ResponseEntity<ResponseDTO<Void>> deleteConversation(@PathVariable UUID uuid,
-            Authentication authentication) {
+    public ResponseEntity<ResponseDTO<Void>> deleteConversation(@PathVariable UUID uuid, Authentication authentication){
         User user = (User) authentication.getPrincipal();
-        ResponseDTO<Void> response = _conversationService.deleteConversationById(uuid, user);
+        ResponseDTO<Void> response =_conversationService.deleteConversationById(uuid, user);
         HttpStatus status = response.isSuccess() ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status).body(response);
     }
 
     @PatchMapping("/archived/{uuid}")
-    public ResponseEntity<ResponseDTO<Boolean>> isArchived(@PathVariable UUID uuid,
-            @RequestBody ArchivedConversationDTO dto, Authentication authentication) {
+    public ResponseEntity<ResponseDTO<Boolean>> isArchived(@PathVariable UUID uuid, @RequestBody ArchivedConversationDTO dto, Authentication authentication){
         User user = (User) authentication.getPrincipal();
 
         ResponseDTO<Boolean> response = _conversationService.isArchived(uuid, dto, user);
@@ -94,8 +94,7 @@ public class ConversationController {
     }
 
     @GetMapping(path = "/{uuid}/members")
-    public ResponseEntity<ResponseDTO<List<ConversationMemberDTO>>> getAllMembers(@PathVariable("uuid") UUID uuid,
-            Authentication authentication) {
+    public ResponseEntity<ResponseDTO<List<ConversationMemberDTO>>> getAllMembers(@PathVariable("uuid") UUID uuid, Authentication authentication){
         User user = (User) authentication.getPrincipal();
 
         ResponseDTO<List<ConversationMemberDTO>> response = _conversationMemberService.getMember(uuid, user);
@@ -104,8 +103,7 @@ public class ConversationController {
     }
 
     @PostMapping(path = "/{uuid}/addMember")
-    public ResponseEntity<ResponseDTO<ConversationMemberDTO>> addMember(@PathVariable UUID uuid,
-            @Valid @RequestBody AddConversationMemberDTO dto, Authentication authentication) {
+    public ResponseEntity<ResponseDTO<ConversationMemberDTO>> addMember (@PathVariable UUID uuid, @Valid @RequestBody AddConversationMemberDTO dto, Authentication authentication){
         User user = (User) authentication.getPrincipal();
 
         ResponseDTO<ConversationMemberDTO> response = _conversationMemberService.addMember(uuid, dto, user);
@@ -114,8 +112,7 @@ public class ConversationController {
     }
 
     @PatchMapping("/{uuid}/role/{userId}")
-    public ResponseEntity<ResponseDTO<ConversationMemberDTO>> updateRole(@PathVariable UUID uuid,
-            @PathVariable UUID userId, @Valid @RequestBody UpdateRoleDTO dto, Authentication authentication) {
+    public ResponseEntity<ResponseDTO<ConversationMemberDTO>> updateRole(@PathVariable UUID uuid, @PathVariable UUID userId, @Valid @RequestBody UpdateRoleDTO dto, Authentication authentication){
         User user = (User) authentication.getPrincipal();
 
         ResponseDTO<ConversationMemberDTO> response = _conversationMemberService.updateRole(uuid, userId, dto, user);
@@ -124,8 +121,7 @@ public class ConversationController {
     }
 
     @PatchMapping("/{uuid}/muted/{userId}")
-    public ResponseEntity<ResponseDTO<ConversationMemberDTO>> updateMute(@PathVariable UUID uuid,
-            @PathVariable UUID userId, @Valid @RequestBody UpdateMuteDTO dto, Authentication authentication) {
+    public ResponseEntity<ResponseDTO<ConversationMemberDTO>> updateMute (@PathVariable UUID uuid, @PathVariable UUID userId, @Valid @RequestBody UpdateMuteDTO dto, Authentication authentication){
         User user = (User) authentication.getPrincipal();
 
         ResponseDTO<ConversationMemberDTO> response = _conversationMemberService.updateMute(uuid, userId, dto, user);
@@ -134,8 +130,7 @@ public class ConversationController {
     }
 
     @DeleteMapping("{uuid}/remove/{userId}")
-    public ResponseEntity<ResponseDTO<Void>> removeMember(@PathVariable UUID uuid, @PathVariable UUID userId,
-            Authentication authentication) {
+    public ResponseEntity<ResponseDTO<Void>> removeMember (@PathVariable UUID uuid, @PathVariable UUID userId, Authentication authentication){
         User user = (User) authentication.getPrincipal();
 
         ResponseDTO<Void> response = _conversationMemberService.removeMember(uuid, userId, user);
@@ -144,7 +139,7 @@ public class ConversationController {
     }
 
     @PostMapping("/{uuid}/leave")
-    public ResponseEntity<ResponseDTO<Void>> leaveConversation(@PathVariable UUID uuid, Authentication authentication) {
+    public ResponseEntity<ResponseDTO<Void>> leaveConversation(@PathVariable UUID uuid, Authentication authentication){
         User user = (User) authentication.getPrincipal();
 
         ResponseDTO<Void> response = _conversationMemberService.leaveConversation(uuid, user);
