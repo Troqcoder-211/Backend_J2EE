@@ -31,13 +31,14 @@ public class ConversationController {
     private final IConversationMemberService _conversationMemberService;
     @Autowired
 
-    public ConversationController(IConversationService conversationService, IConversationMemberService conversationMemberService){
+    public ConversationController(IConversationService conversationService,
+            IConversationMemberService conversationMemberService) {
         _conversationService = conversationService;
         _conversationMemberService = conversationMemberService;
     }
 
     @GetMapping
-    public ResponseEntity<ResponseDTO<List<ConversationDTO>>> getAll(Authentication authentication){
+    public ResponseEntity<ResponseDTO<List<ConversationDTO>>> getAll(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
 
         ResponseDTO<List<ConversationDTO>> response = _conversationService.getAllConversation(user);
@@ -46,7 +47,8 @@ public class ConversationController {
     }
 
     @GetMapping("/findbyid/{uuid}")
-    public ResponseEntity<ResponseDTO<ConversationDTO>> getById(@PathVariable UUID uuid, Authentication authentication){
+    public ResponseEntity<ResponseDTO<ConversationDTO>> getById(@PathVariable UUID uuid,
+            Authentication authentication) {
         User user = (User) authentication.getPrincipal();
 
         ResponseDTO<ConversationDTO> response = _conversationService.findConversationById(uuid, user);
