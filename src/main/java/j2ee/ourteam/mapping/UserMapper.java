@@ -11,7 +11,6 @@ import j2ee.ourteam.models.user.UserResponseDTO;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-  // User toCreateEntity(RegisterRequestDTO dto);
   User toCreateEntity(RegisterRequestDTO dto);
 
   UserProfileResponseDTO toUserProfileResponseDTO(User entity);

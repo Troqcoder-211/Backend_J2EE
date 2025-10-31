@@ -20,7 +20,7 @@ import lombok.Setter;
 public class RegisterRequestDTO {
         @NotBlank(message = "Username không được để trống")
         @Pattern(regexp = "^[A-Za-z][A-Za-z0-9._-]{3,99}$", message = "Username chỉ được chứa chữ, số, dấu chấm, gạch dưới, gạch nối và bắt đầu bằng chữ")
-        private String username;
+        private String userName;
 
         @NotBlank(message = "Email không được để trống")
         @Email
