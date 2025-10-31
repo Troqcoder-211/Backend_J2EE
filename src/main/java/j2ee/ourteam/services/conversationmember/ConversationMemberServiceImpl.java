@@ -26,7 +26,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-// @AllArgsConstructor
 public class ConversationMemberServiceImpl implements IConversationMemberService {
 
     private final ConversationMemberMapper _conversationMemberMapper;
