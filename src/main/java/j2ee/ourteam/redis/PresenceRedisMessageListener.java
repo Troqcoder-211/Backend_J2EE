@@ -4,18 +4,18 @@ package j2ee.ourteam.redis;
 import j2ee.ourteam.repositories.ConversationMemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Component
+@Configuration
 @RequiredArgsConstructor
 public class PresenceRedisMessageListener {
 
@@ -33,7 +33,7 @@ public class PresenceRedisMessageListener {
             try {
                 String body = new String(message.getBody());
                 // Expected format: userId:online or userId:offline
-                String[] parts = body.split(":");
+                String[] parts = body.split(":", 2);
                 if (parts.length < 2)
                     return;
 
