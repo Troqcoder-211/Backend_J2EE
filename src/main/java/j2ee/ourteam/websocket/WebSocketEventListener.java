@@ -21,11 +21,11 @@ import java.util.UUID;
 public class WebSocketEventListener {
 
 
-    private IPresenceService presenceService;
+    private final IPresenceService presenceService;
 
-    private SimpMessagingTemplate simpMessagingTemplate;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
-    private PresenceRepository presenceRepository;
+    private final PresenceRepository presenceRepository;
 
 
     @EventListener

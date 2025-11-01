@@ -14,7 +14,7 @@ import java.security.Principal;
 @RequiredArgsConstructor
 public class HeartbeatController {
 
-    private IPresenceService presenceService;
+    private final IPresenceService presenceService;
 
     @MessageMapping("/heartbeat")
     public void heartbeat(Principal principal, @Payload(required = false) String payload) {

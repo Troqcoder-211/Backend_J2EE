@@ -62,7 +62,7 @@ public class PresenceServiceImpl implements IPresenceService {
 
     @Override
     public String key(String userId) {
-        return "user:" + userId + ":status";
+        return PRESENCE_KEY_PREFIX + userId;
     }
 
     @Override

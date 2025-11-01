@@ -19,7 +19,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class JwtCookieHandshakeInterceptor implements HandshakeInterceptor {
 
-    private JwtService jwtService;
+    private final JwtService jwtService;
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
