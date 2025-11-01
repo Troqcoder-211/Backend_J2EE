@@ -78,7 +78,7 @@ public class ConversationController {
     public ResponseEntity<ResponseDTO<Void>> deleteConversation(@PathVariable UUID uuid, Authentication authentication){
         User user = (User) authentication.getPrincipal();
         ResponseDTO<Void> response =_conversationService.deleteConversationById(uuid, user);
-        HttpStatus status = response.isSuccess() ? HttpStatus.NO_CONTENT : HttpStatus.BAD_REQUEST;
+        HttpStatus status = response.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status).body(response);
     }
 
