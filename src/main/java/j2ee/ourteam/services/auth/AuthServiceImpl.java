@@ -85,7 +85,6 @@ public class AuthServiceImpl implements IAuthService {
         return dto;
     }
 
-
     @Override
     public String refreshAccessToken(String refreshToken) {
         UUID deviceId = jwtService.extractDeviceId(refreshToken);
@@ -100,7 +99,6 @@ public class AuthServiceImpl implements IAuthService {
         User user = refresh.getUser();
         return jwtService.generateAccessToken(user, deviceId);
     }
-
 
     @Override
     public void register(RegisterRequestDTO request) {
@@ -130,7 +128,6 @@ public class AuthServiceImpl implements IAuthService {
         presenceRepository.save(presence);
     }
 
-
     @Override
     public void logout(String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
@@ -146,7 +143,6 @@ public class AuthServiceImpl implements IAuthService {
         refreshTokenRepository.deleteByUserAndDevice(user, device);
         deviceRepository.delete(device);
     }
-
 
     @Override
     public void changePassword(String username, ChangePasswordRequestDTO dto) {
@@ -167,7 +163,6 @@ public class AuthServiceImpl implements IAuthService {
         refreshTokenRepository.deleteAllByUserId(user.getId());
     }
 
-
     @Override
     public void handleForgotPassword(ForgotPasswordRequestDTO dto) {
         User user = userRepository.findByUserName(dto.getUserName())
@@ -176,7 +171,6 @@ public class AuthServiceImpl implements IAuthService {
         PasswordResetOtp otp = otpService.generateOtp(user);
         mailService.sendTextMail(user.getEmail(), otp);
     }
-
 
     @Override
     public void resetPassword(ResetPasswordRequestDTO dto) {

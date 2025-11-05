@@ -32,8 +32,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+            HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
         // 1️⃣ Lấy JWT từ cookie
@@ -63,12 +63,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 if (jwtService.isTokenValid(accessToken, user)) {
                     // 4️⃣ Tạo Authentication
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    user,
-                                    null,
-                                    List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
-                            );
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            user,
+                            null,
+                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole())));
                     // Gắn deviceId làm thông tin phụ
                     authToken.setDetails(deviceId);
 
@@ -81,7 +79,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String extractJwtFromCookies(HttpServletRequest request) {
-        if (request.getCookies() == null) return null;
+        if (request.getCookies() == null)
+            return null;
         for (Cookie c : request.getCookies()) {
             if ("access_token".equals(c.getName())) {
                 return c.getValue();

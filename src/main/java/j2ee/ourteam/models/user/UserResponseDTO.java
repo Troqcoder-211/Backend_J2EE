@@ -18,8 +18,6 @@ import java.util.UUID;
 public class UserResponseDTO {
     private UUID id;
     private String userName;
-    private String password;
-    private String email;
     private String displayName;
     private String avatarS3Key;
     private boolean isDisabled;

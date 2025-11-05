@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ConversationMemberRepository extends JpaRepository<ConversationMember, ConversationMemberId> {
-    List<ConversationMember> findByIdConversationId (UUID conversationId);
+    List<ConversationMember> findByIdConversationId(UUID conversationId);
+
     @Query("""
                 SELECT DISTINCT cm.user.id
                 FROM ConversationMember cm
@@ -21,4 +22,5 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
                 )
             """)
     List<UUID> findRelatedUserIdsByUserId(@Param("userId") UUID userId);
+
 }

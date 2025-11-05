@@ -2,22 +2,17 @@ package j2ee.ourteam.services.presence;
 
 import j2ee.ourteam.models.presence.PresenceResponseDTO;
 import j2ee.ourteam.repositories.ConversationMemberRepository;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
-
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 
-
 @Service
-public class PresenceServiceImpl implements IPresenceService{
-
+public class PresenceServiceImpl implements IPresenceService {
 
     private final StringRedisTemplate redisTemplate;
     private final ValueOperations<String, String> ops;
@@ -27,7 +22,6 @@ public class PresenceServiceImpl implements IPresenceService{
     private ConversationMemberRepository conversationMemberRepository;
     private static final String PRESENCE_KEY_PREFIX = "presence:";
 
-    @Autowired
     public PresenceServiceImpl(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
         this.ops = redisTemplate.opsForValue();
@@ -68,7 +62,7 @@ public class PresenceServiceImpl implements IPresenceService{
 
     @Override
     public String key(String userId) {
-        return "user:" + userId + ":status";
+        return PRESENCE_KEY_PREFIX + userId;
     }
 
     @Override

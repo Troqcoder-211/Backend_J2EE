@@ -57,7 +57,7 @@ public class UserServiceImpl implements IUserService {
   @Override
   public UserProfileResponseDTO updateMyProfile(UUID currentUserId, UpdateUserProfileDTO updateDTO) {
     User user = userRepository.findById(currentUserId)
-            .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
+        .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
     if (updateDTO.getEmail() != null && !updateDTO.getEmail().isBlank()) {
       user.setEmail(updateDTO.getEmail());
     }
@@ -73,23 +73,23 @@ public class UserServiceImpl implements IUserService {
     return userMapper.toUserProfileResponseDTO(user);
   }
 
-    @Override
-    public String updateAvatar(UUID currentUserId, MultipartFile avatarFile) throws IOException {
-        User user = userRepository.findById(currentUserId)
-            .orElseThrow(()-> new EntityNotFoundException("Không tìm thấy người dùng"));
+  @Override
+  public String updateAvatar(UUID currentUserId, MultipartFile avatarFile) throws IOException {
+    User user = userRepository.findById(currentUserId)
+        .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
 
-        if (user.getAvatarS3Key() != null && !user.getAvatarS3Key().isBlank()) {
-            s3Service.deleteFile(user.getAvatarS3Key());
-        }
-        String newAvatarUrl = s3Service.uploadFile(avatarFile);
-
-        user.setAvatarS3Key(newAvatarUrl);
-        userRepository.save(user);
-
-        return newAvatarUrl;
+    if (user.getAvatarS3Key() != null && !user.getAvatarS3Key().isBlank()) {
+      s3Service.deleteFile(user.getAvatarS3Key());
     }
+    String newAvatarUrl = s3Service.uploadFile(avatarFile);
 
-    @Override
+    user.setAvatarS3Key(newAvatarUrl);
+    userRepository.save(user);
+
+    return newAvatarUrl;
+  }
+
+  @Override
   public void disableUser(UUID currentUserId) {
     User user = userRepository.findById(currentUserId)
         .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));

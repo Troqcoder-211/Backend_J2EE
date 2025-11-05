@@ -5,9 +5,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import j2ee.ourteam.entities.MessageReaction;
 import j2ee.ourteam.entities.MessageReactionId;
-import j2ee.ourteam.repositories.MessageReactionRepository;
 
 @Service
 public class MessageReactionServiceImpl implements IMessageReactionService {

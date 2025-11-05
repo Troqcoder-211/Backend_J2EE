@@ -2,7 +2,6 @@ package j2ee.ourteam.controllers;
 
 import j2ee.ourteam.services.presence.IPresenceService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
@@ -15,7 +14,7 @@ import java.security.Principal;
 @RequiredArgsConstructor
 public class HeartbeatController {
 
-    private IPresenceService presenceService;
+    private final IPresenceService presenceService;
 
     @MessageMapping("/heartbeat")
     public void heartbeat(Principal principal, @Payload(required = false) String payload) {
