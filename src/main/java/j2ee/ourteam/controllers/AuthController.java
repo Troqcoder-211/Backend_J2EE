@@ -53,7 +53,7 @@ public class AuthController {
 
         Cookie refreshTokenCookie = new Cookie("refresh_token", data.getRefreshToken());
         refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setPath("/auth/refresh");
+        refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
         refreshTokenCookie.setAttribute("SameSite", "None");
         refreshTokenCookie.setSecure(false);
@@ -99,15 +99,15 @@ public class AuthController {
         authService.logout(refreshToken);
 
         // Xóa cookie ở trình duyệt
-        Cookie accessCookie = new Cookie("access_token", "");
+        Cookie accessCookie = new Cookie("access_token", null);
         accessCookie.setPath("/");
         accessCookie.setMaxAge(0);
         accessCookie.setHttpOnly(true);
         accessCookie.setAttribute("SameSite", "None");
         accessCookie.setSecure(false);
 
-        Cookie refreshCookie = new Cookie("refresh_token", "");
-        refreshCookie.setPath("/auth/refresh");
+        Cookie refreshCookie = new Cookie("refresh_token", null);
+        refreshCookie.setPath("/");
         refreshCookie.setMaxAge(0);
         refreshCookie.setHttpOnly(true);
         refreshCookie.setAttribute("SameSite", "None");
@@ -136,17 +136,15 @@ public class AuthController {
     // Đổi mật khẩu (khi đã đăng nhập)
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequestDTO request,
-            HttpServletResponse httpResponse) {
+                                            HttpServletRequest httpRequest,
+                                            HttpServletResponse httpResponse) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body("Unauthorized");
+        String refreshToken = extractCookieValue(httpRequest, "refresh_token");
+        if (refreshToken == null) {
+            throw new RuntimeException("Không tìm thấy refresh token");
         }
 
-        String username = authentication.getName();
-
-        authService.changePassword(username, request);
+        authService.changePassword(refreshToken, request);
 
         // Xóa cookie khi đổi mật khẩu thành công
         Cookie accessCookie = new Cookie("access_token", null);
@@ -157,7 +155,7 @@ public class AuthController {
         accessCookie.setSecure(false);
 
         Cookie refreshCookie = new Cookie("refresh_token", null);
-        refreshCookie.setPath("/auth/refresh");
+        refreshCookie.setPath("/");
         refreshCookie.setMaxAge(0);
         refreshCookie.setHttpOnly(true);
         refreshCookie.setAttribute("SameSite", "None");

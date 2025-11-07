@@ -1,4 +1,4 @@
-package j2ee.ourteam;
+package j2ee.ourteam.auth;
 
 import j2ee.ourteam.entities.User;
 import j2ee.ourteam.services.auth.JwtService;

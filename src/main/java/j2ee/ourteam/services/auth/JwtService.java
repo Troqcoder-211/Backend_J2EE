@@ -97,7 +97,7 @@ public class JwtService {
         }
     }
 
-
+    @SuppressWarnings("deprecation")
     public Date extractExpiration(String token) {
         Claims claims = Jwts.parser().setSigningKey(key).build().parseClaimsJws(token).getBody();
         return claims.getExpiration();
