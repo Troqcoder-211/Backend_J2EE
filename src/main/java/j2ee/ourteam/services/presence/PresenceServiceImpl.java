@@ -1,9 +1,11 @@
 package j2ee.ourteam.services.presence;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import j2ee.ourteam.models.presence.PresenceResponseDTO;
 import j2ee.ourteam.repositories.ConversationMemberRepository;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
@@ -15,16 +17,15 @@ import java.util.*;
 public class PresenceServiceImpl implements IPresenceService {
 
     private final StringRedisTemplate redisTemplate;
-    private final ValueOperations<String, String> ops;
+    private ValueOperations<String, String> ops;
     private static final Duration TTL = Duration.ofSeconds(60);
-
-    @Autowired
-    private ConversationMemberRepository conversationMemberRepository;
+    private final ConversationMemberRepository conversationMemberRepository;
     private static final String PRESENCE_KEY_PREFIX = "presence:";
 
-    public PresenceServiceImpl(StringRedisTemplate redisTemplate) {
+    public PresenceServiceImpl(StringRedisTemplate redisTemplate, ConversationMemberRepository conversationMemberRepository){
         this.redisTemplate = redisTemplate;
-        this.ops = redisTemplate.opsForValue();
+        this.conversationMemberRepository = conversationMemberRepository;
+        this. ops = redisTemplate.opsForValue();
     }
 
     @Override
@@ -44,20 +45,17 @@ public class PresenceServiceImpl implements IPresenceService {
 
     @Override
     public PresenceResponseDTO getStatuses(UUID userId) {
-        List<UUID> relatedUserIds = conversationMemberRepository.findRelatedUserIdsByUserId(userId);
-        List<String> keys = relatedUserIds.stream().map(id -> PRESENCE_KEY_PREFIX + id).toList();
+        List<UUID> related = conversationMemberRepository.findRelatedUserIdsByUserId(userId);
 
-        Map<UUID, String> result = new HashMap<>();
-        int index = 0;
-        for (String key : keys) {
-            String status = redisTemplate.opsForValue().get(key);
-            result.put(relatedUserIds.get(index), status != null ? status : "offline");
-            index += 1;
+        Map<String, String> map = new HashMap<>();
+        for (UUID uid : related) {
+            String status = ops.get(PRESENCE_KEY_PREFIX + uid);
+            map.put(uid.toString(), status != null ? status : "offline");
         }
 
-        PresenceResponseDTO response;
-        response = PresenceResponseDTO.builder().mapPresenceResponse(result).build();
-        return response;
+        return PresenceResponseDTO.builder()
+                .presence(map)
+                .build();
     }
 
     @Override
@@ -66,7 +64,10 @@ public class PresenceServiceImpl implements IPresenceService {
     }
 
     @Override
-    public void publishPresenceUpdate(String payload) {
-        redisTemplate.convertAndSend("presence_updates", payload);
+    public void publishPresenceUpdate(String userId, String status) throws JsonProcessingException {
+        Map<String, Object> payload = Map.of(
+                "presence", Map.of(userId, status)
+        );
+        redisTemplate.convertAndSend("presence_updates", new ObjectMapper().writeValueAsString(payload));
     }
 }
