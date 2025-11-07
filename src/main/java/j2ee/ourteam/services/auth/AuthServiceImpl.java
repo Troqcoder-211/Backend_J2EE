@@ -25,6 +25,7 @@ import j2ee.ourteam.repositories.RefreshTokenRepository;
 import j2ee.ourteam.repositories.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -129,6 +130,7 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     @Override
+    @Transactional
     public void logout(String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
             throw new RuntimeException("Token không hợp lệ");
@@ -145,12 +147,12 @@ public class AuthServiceImpl implements IAuthService {
     }
 
     @Override
-    public void changePassword(String username, ChangePasswordRequestDTO dto) {
+    public void changePassword(String refreshToken, ChangePasswordRequestDTO dto) {
         if (dto.getNewPassword().length() < 8) {
             throw new RuntimeException("Mật khẩu không hợp lệ");
         }
 
-        User user = userRepository.findByUserName(username)
+        User user = userRepository.findByUserName(jwtService.extractUsername(refreshToken))
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
 
         if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {

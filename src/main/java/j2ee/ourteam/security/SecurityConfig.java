@@ -61,9 +61,12 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/forgot-password",
                                 "/auth/reset-password",
-                                "/auth/refresh")
+                                "/auth/refresh",
+                                "/auth/change-password",
+                                "/auth/logout")
                         .permitAll()
                         .anyRequest().authenticated())
+                .logout(logout->logout.disable())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

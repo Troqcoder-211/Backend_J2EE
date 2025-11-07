@@ -36,14 +36,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 1️⃣ Lấy JWT từ cookie
+        // Lấy JWT từ cookie
         String accessToken = extractJwtFromCookies(request);
         if (accessToken == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 2️⃣ Giải mã token, lấy username + deviceId
+        // Giải mã token, lấy username + deviceId
         String username;
         UUID deviceId;
         try {
@@ -54,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 3️⃣ Nếu chưa có Authentication trong context, xác thực user
+        // Nếu chưa có Authentication trong context, xác thực user
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             Optional<User> userOpt = userRepository.findByUserName(username);
 
@@ -62,7 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 User user = userOpt.get();
 
                 if (jwtService.isTokenValid(accessToken, user)) {
-                    // 4️⃣ Tạo Authentication
+                    // Tạo Authentication
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             user,
                             null,
