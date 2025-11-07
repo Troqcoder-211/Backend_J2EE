@@ -17,5 +17,5 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 public class PresenceResponseDTO {
-    Map<UUID, String> mapPresenceResponse;
+    private Map<String, String> presence;
 }

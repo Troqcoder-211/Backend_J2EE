@@ -76,6 +76,7 @@ public class JwtService {
         return UUID.fromString((String) claims.get("deviceId"));
     }
 
+    @SuppressWarnings("deprecation")
     public UUID extractUserId(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(key)
@@ -85,6 +86,8 @@ public class JwtService {
 
         return UUID.fromString((String) claims.get("userId"));
     }
+
+    @SuppressWarnings("deprecation")
     public boolean validateToken(String token) {
         try {
             Jwts.parser().setSigningKey(key).build().parseClaimsJws(token);

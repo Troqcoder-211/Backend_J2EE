@@ -2,6 +2,7 @@ package j2ee.ourteam.services.presence;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import j2ee.ourteam.models.presence.PresenceResponseDTO;
 
 public interface IPresenceService {
@@ -15,6 +16,6 @@ public interface IPresenceService {
 
     String key(String userId);
 
-    void publishPresenceUpdate(String payload);
+    void publishPresenceUpdate(String userId, String status) throws JsonProcessingException;
 
 }
