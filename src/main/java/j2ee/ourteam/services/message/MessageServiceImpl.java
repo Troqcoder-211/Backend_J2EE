@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import j2ee.ourteam.models.messagereaction.MessageReactionDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -305,5 +306,26 @@ public class MessageServiceImpl implements IMessageService {
       throw new RuntimeException("Failed to get Read Status message" + e.getMessage(), e);
     }
   }
+
+    @Override
+    public Page<MessageReactionDTO> getReactions(UUID id, Integer page, Integer limit) {
+      try {
+          Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("reactedAt").descending());
+
+          return messageReactionRepository.findByMessageId(id,pageable)
+                  .map(reaction -> MessageReactionDTO.builder()
+                          .messageId(reaction.getId().getMessageId())
+                          .userId(reaction.getUser().getId())
+                          .avatar(reaction.getUser().getAvatarS3Key())
+                          .username(reaction.getUser().getUserName())
+                          .emoji(reaction.getId().getEmoji())
+                          .createdAt(reaction.getReactedAt())
+                          .build());
+
+      } catch (Exception e) {
+          throw new RuntimeException("Failed to get reactions message" + e.getMessage(), e);
+      }
+
+    }
 
 }

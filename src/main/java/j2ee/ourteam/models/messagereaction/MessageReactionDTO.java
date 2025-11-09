@@ -15,6 +15,10 @@ public class MessageReactionDTO {
 
   private UUID userId;
 
+  private String avatar;
+
+  private String username;
+
   private String emoji;
 
   private LocalDateTime createdAt;

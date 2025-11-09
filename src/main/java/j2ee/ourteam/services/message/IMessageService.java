@@ -7,6 +7,7 @@ import j2ee.ourteam.interfaces.GenericCrudService;
 import j2ee.ourteam.models.message.MessageDTO;
 import j2ee.ourteam.models.message.MessageFilter;
 import j2ee.ourteam.models.messagereaction.CreateMessageReactionDTO;
+import j2ee.ourteam.models.messagereaction.MessageReactionDTO;
 import j2ee.ourteam.models.messageread.MessageReadDTO;
 
 import org.springframework.data.domain.Page;
@@ -23,4 +24,7 @@ public interface IMessageService extends GenericCrudService<Message, Object, Mes
   void markAsRead(UUID id, UUID userId);
 
   Page<MessageReadDTO> getReadStatus(UUID id, Integer page, Integer limit);
+
+  Page<MessageReactionDTO> getReactions(UUID id, Integer page, Integer limit);
+
 }

@@ -3,6 +3,9 @@ package j2ee.ourteam.controllers;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import j2ee.ourteam.models.messagereaction.MessageReactionDTO;
+import j2ee.ourteam.models.page.PageFilter;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
@@ -57,6 +60,13 @@ public class MessageController {
   public ResponseEntity<PageResponse<MessageDTO>> getMessages(@ModelAttribute MessageFilter filter) {
     Page<MessageDTO> page = messageService.findAllPaged(filter);
     return ResponseEntity.ok(PageResponse.from(page));
+  }
+
+  @GetMapping("/{id}/reactions")
+  public ResponseEntity<PageResponse<MessageReactionDTO>> getReactions(@PathVariable UUID id,@ModelAttribute @Valid PageFilter pageFilter){
+      Page<MessageReactionDTO> page = messageService.getReactions(id,pageFilter.getPage(),pageFilter.getLimit());
+
+      return  ResponseEntity.ok(PageResponse.from(page));
   }
 
   @PostMapping("/{id}/reactions")
