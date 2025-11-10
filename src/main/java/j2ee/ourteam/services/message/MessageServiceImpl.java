@@ -295,13 +295,13 @@ public class MessageServiceImpl implements IMessageService {
       Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("readAt").descending());
 
       return messageReadRepository.findByMessageId(id, pageable)
-          .map(read -> MessageReadDTO.builder()
-              .userId(read.getUser().getId())
-              .username(read.getUser().getUserName())
-              .username(read.getUser().getAvatarS3Key())
-              .readAt(read.getReadAt())
-              .build());
-
+              .map(read -> MessageReadDTO.builder()
+                      .messageId(read.getMessage().getId()) // thêm MessageId
+                      .userId(read.getUser().getId())
+                      .username(read.getUser().getUserName()) // username thật
+                      .avatar(read.getUser().getAvatarS3Key()) // avatar
+                      .readAt(read.getReadAt())
+                      .build());
     } catch (Exception e) {
       throw new RuntimeException("Failed to get Read Status message" + e.getMessage(), e);
     }

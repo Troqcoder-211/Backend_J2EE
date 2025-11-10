@@ -16,5 +16,6 @@ public class MessageReadDTO {
   private UUID messageId;
   private UUID userId;
   private String username;
+  private String avatar;
   private LocalDateTime readAt;
 }
