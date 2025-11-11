@@ -63,7 +63,8 @@ public class SecurityConfig {
                                 "/auth/reset-password",
                                 "/auth/refresh",
                                 "/auth/change-password",
-                                "/auth/logout")
+                                "/auth/logout",
+                                "/error")
                         .permitAll()
                         .anyRequest().authenticated())
                 .logout(logout -> logout.disable())

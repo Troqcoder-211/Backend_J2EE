@@ -23,7 +23,7 @@ public class MessageDTO {
   private Boolean isDeleted;
   private UUID senderId;
   private UUID conversationId;
-  private UUID replyTo;
+  private MessageDTO replyTo;
 
   private Set<UUID> attachmentIds;
 }

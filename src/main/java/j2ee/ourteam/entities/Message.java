@@ -77,6 +77,9 @@ public class Message {
   @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<MessageRead> reads;
 
+  @OneToMany(mappedBy = "replyTo", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Message> replies;
+
   // Liên kết attachments
   @Builder.Default
   @ManyToMany

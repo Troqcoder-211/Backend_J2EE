@@ -11,6 +11,9 @@ import lombok.AllArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,6 +26,7 @@ import j2ee.ourteam.models.message.UpdateMessageDTO;
 import j2ee.ourteam.models.messagereaction.CreateMessageReactionDTO;
 import j2ee.ourteam.models.messageread.MessageReadDTO;
 import j2ee.ourteam.models.page.PageResponse;
+import j2ee.ourteam.models.message.CreateReplyMessageDTO;
 import j2ee.ourteam.services.message.IMessageService;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -63,10 +67,11 @@ public class MessageController {
   }
 
   @GetMapping("/{id}/reactions")
-  public ResponseEntity<PageResponse<MessageReactionDTO>> getReactions(@PathVariable UUID id,@ModelAttribute @Valid PageFilter pageFilter){
-      Page<MessageReactionDTO> page = messageService.getReactions(id,pageFilter.getPage(),pageFilter.getLimit());
+  public ResponseEntity<PageResponse<MessageReactionDTO>> getReactions(@PathVariable UUID id,
+      @ModelAttribute @Valid PageFilter pageFilter) {
+    Page<MessageReactionDTO> page = messageService.getReactions(id, pageFilter.getPage(), pageFilter.getLimit());
 
-      return  ResponseEntity.ok(PageResponse.from(page));
+    return ResponseEntity.ok(PageResponse.from(page));
   }
 
   @PostMapping("/{id}/reactions")
@@ -96,25 +101,32 @@ public class MessageController {
     return ResponseEntity.ok(response);
   }
 
-  @PostMapping("/{id}/read")
-  public ResponseEntity<Map<String, Object>> markAsRead(@PathVariable UUID id, @RequestParam UUID userId) {
-    messageService.markAsRead(id, userId);
+  @PostMapping("/conversation/{conversationId}/mark-as-read")
+  public ResponseEntity<PageResponse<MessageReadDTO>> markConversationAsRead(
+      @PathVariable UUID conversationId,
+      @RequestParam UUID userId,
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "10") int limit) {
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("status", "success");
-    response.put("message", "Message marked as read");
-
-    return ResponseEntity.ok(response);
+    Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("readAt").descending());
+    Page<MessageReadDTO> result = messageService.markConversationAsRead(conversationId, userId, pageable);
+    return ResponseEntity.ok(PageResponse.from(result));
   }
 
-  @GetMapping("/{id}/reads")
-  public ResponseEntity<PageResponse<MessageReadDTO>> getReadStatus(
-      @PathVariable UUID id,
-      @RequestParam(defaultValue = "1") Integer page,
-      @RequestParam(defaultValue = "10") Integer limit) {
-    Page<MessageReadDTO> pageResponse = messageService.getReadStatus(id, page, limit);
+  @GetMapping("/{messageId}/readers")
+  public ResponseEntity<PageResponse<MessageReadDTO>> getMessageReaders(
+      @PathVariable UUID messageId,
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(defaultValue = "10") int limit) {
 
-    return ResponseEntity.ok(PageResponse.from(pageResponse));
+    Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("readAt").descending());
+    Page<MessageReadDTO> result = messageService.getMessageReaders(messageId, pageable);
+    return ResponseEntity.ok(PageResponse.from(result));
   }
 
+  @PostMapping("/reply")
+  public ResponseEntity<MessageDTO> replyToMessage(@RequestBody @Valid CreateReplyMessageDTO dto) {
+    MessageDTO saved = messageService.reply(dto);
+    return ResponseEntity.ok(saved);
+  }
 }

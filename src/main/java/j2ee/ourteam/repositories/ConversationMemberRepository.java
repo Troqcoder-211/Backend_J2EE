@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ConversationMemberRepository extends JpaRepository<ConversationMember, ConversationMemberId> {
@@ -23,4 +24,5 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
             """)
     List<UUID> findRelatedUserIdsByUserId(@Param("userId") UUID userId);
 
+    Optional<ConversationMember> findByConversationIdAndUserId(UUID conversationId, UUID userId);
 }

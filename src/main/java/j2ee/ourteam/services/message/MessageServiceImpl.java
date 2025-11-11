@@ -1,10 +1,13 @@
 package j2ee.ourteam.services.message;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import j2ee.ourteam.entities.*;
 import j2ee.ourteam.models.messagereaction.MessageReactionDTO;
+import j2ee.ourteam.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,32 +15,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import j2ee.ourteam.controllers.WebSocketController;
-import j2ee.ourteam.entities.Attachment;
-import j2ee.ourteam.entities.Conversation;
-import j2ee.ourteam.entities.Message;
-import j2ee.ourteam.entities.MessageReaction;
-import j2ee.ourteam.entities.MessageReactionId;
-import j2ee.ourteam.entities.MessageRead;
-import j2ee.ourteam.entities.MessageReadId;
-import j2ee.ourteam.entities.User;
 import j2ee.ourteam.enums.message.MessageTypeEnum;
 import j2ee.ourteam.mapping.MessageMapper;
 import j2ee.ourteam.models.message.CreateMessageDTO;
+import j2ee.ourteam.models.message.CreateReplyMessageDTO;
 import j2ee.ourteam.models.message.MessageDTO;
 import j2ee.ourteam.models.message.MessageFilter;
 import j2ee.ourteam.models.message.MessageSpecification;
 import j2ee.ourteam.models.message.UpdateMessageDTO;
 import j2ee.ourteam.models.messagereaction.CreateMessageReactionDTO;
 import j2ee.ourteam.models.messageread.MessageReadDTO;
-import j2ee.ourteam.repositories.AttachmentRepository;
-import j2ee.ourteam.repositories.ConversationRepository;
-import j2ee.ourteam.repositories.MessageReactionRepository;
-import j2ee.ourteam.repositories.MessageReadRepository;
-import j2ee.ourteam.repositories.MessageRepository;
-import j2ee.ourteam.repositories.UserRepository;
 import lombok.AllArgsConstructor;
 
 @Service
@@ -47,6 +38,7 @@ public class MessageServiceImpl implements IMessageService {
   private final MessageReactionRepository messageReactionRepository;
   private final MessageReadRepository messageReadRepository;
   private final ConversationRepository conversationRepository;
+  private final ConversationMemberRepository conversationMemberRepository;
   private final AttachmentRepository attachmentRepository;
   private final UserRepository userRepository;
 
@@ -78,6 +70,37 @@ public class MessageServiceImpl implements IMessageService {
     attachFiles(message, createDto.getAttachmentIds());
 
     Message saved = messageRepository.save(message);
+
+    webSocketController.pushMessage(messageMapper.toDto(saved));
+
+    return messageMapper.toDto(saved);
+  }
+
+  @Transactional
+  public MessageDTO reply(CreateReplyMessageDTO dto) {
+    if (dto == null)
+      throw new IllegalArgumentException("DTO cannot be null");
+
+    // validate conversation, sender and original message existence
+    Conversation conversation = findConversation(dto.getConversationId());
+    User sender = findSender(dto.getSenderId());
+    Message original = findReplyMessage(dto.getReplyToMessageId());
+
+    // Build reply message
+    Message reply = Message.builder()
+        .conversation(conversation)
+        .sender(sender)
+        .content(dto.getContent())
+        .type(Message.MessageType.REPLY)
+        .replyTo(original)
+        .build();
+
+    // Save reply
+    Message saved = messageRepository.save(reply);
+
+    // Optionally update read status: mark as read for sender
+    LocalDateTime now = LocalDateTime.now();
+    messageReadRepository.insertMessageRead(saved.getId(), sender.getId(), now);
 
     webSocketController.pushMessage(messageMapper.toDto(saved));
 
@@ -259,73 +282,56 @@ public class MessageServiceImpl implements IMessageService {
   }
 
   @Override
-  public void markAsRead(UUID id, UUID userId) {
-    System.out.println("UUID MESSAGE" + id);
-    Message message = messageRepository.findById(id)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found"));
+  @Transactional
+  public Page<MessageReadDTO> markConversationAsRead(UUID conversationId, UUID userId, Pageable pageable) {
 
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    Message lastMessage = messageRepository
+        .findTopByConversationIdOrderByCreatedAtDesc(conversationId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation is empty"));
 
-    try {
+    ConversationMember member = conversationMemberRepository
+        .findByConversationIdAndUserId(conversationId, userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not in conversation"));
 
-      MessageReadId key = new MessageReadId(id, userId);
+    member.setLastReadMessageId(lastMessage.getId());
+    member.setLastReadAt(lastMessage.getCreatedAt());
+    conversationMemberRepository.save(member);
 
-      if (messageReadRepository.existsById(key)) {
-        throw new RuntimeException("Read already exist");
-      }
+    List<UUID> unreadMessageIds = messageReadRepository
+        .findUnreadMessageIds(conversationId, userId, lastMessage.getCreatedAt());
 
-      MessageRead messageRead = MessageRead
-          .builder()
-          .id(key)
-          .message(message)
-          .user(user)
-          .build();
-
-      messageReadRepository.save(messageRead);
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to mark As Read Message" + e.getMessage(), e);
+    LocalDateTime now = LocalDateTime.now();
+    for (UUID messageId : unreadMessageIds) {
+      messageReadRepository.insertMessageRead(messageId, userId, now);
     }
 
+    return messageReadRepository.findByMessageIdAsDTO(lastMessage.getId(), pageable);
   }
 
   @Override
-  public Page<MessageReadDTO> getReadStatus(UUID id, Integer page, Integer limit) {
-    try {
-      Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("readAt").descending());
-
-      return messageReadRepository.findByMessageId(id, pageable)
-              .map(read -> MessageReadDTO.builder()
-                      .messageId(read.getMessage().getId()) // thêm MessageId
-                      .userId(read.getUser().getId())
-                      .username(read.getUser().getUserName()) // username thật
-                      .avatar(read.getUser().getAvatarS3Key()) // avatar
-                      .readAt(read.getReadAt())
-                      .build());
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to get Read Status message" + e.getMessage(), e);
-    }
+  public Page<MessageReadDTO> getMessageReaders(UUID messageId, Pageable pageable) {
+    return messageReadRepository.findByMessageIdAsDTO(messageId, pageable);
   }
 
-    @Override
-    public Page<MessageReactionDTO> getReactions(UUID id, Integer page, Integer limit) {
-      try {
-          Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("reactedAt").descending());
+  @Override
+  public Page<MessageReactionDTO> getReactions(UUID id, Integer page, Integer limit) {
+    try {
+      Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("reactedAt").descending());
 
-          return messageReactionRepository.findByMessageId(id,pageable)
-                  .map(reaction -> MessageReactionDTO.builder()
-                          .messageId(reaction.getId().getMessageId())
-                          .userId(reaction.getUser().getId())
-                          .avatar(reaction.getUser().getAvatarS3Key())
-                          .username(reaction.getUser().getUserName())
-                          .emoji(reaction.getId().getEmoji())
-                          .createdAt(reaction.getReactedAt())
-                          .build());
+      return messageReactionRepository.findByMessageId(id, pageable)
+          .map(reaction -> MessageReactionDTO.builder()
+              .messageId(reaction.getId().getMessageId())
+              .userId(reaction.getUser().getId())
+              .avatar(reaction.getUser().getAvatarS3Key())
+              .username(reaction.getUser().getUserName())
+              .emoji(reaction.getId().getEmoji())
+              .createdAt(reaction.getReactedAt())
+              .build());
 
-      } catch (Exception e) {
-          throw new RuntimeException("Failed to get reactions message" + e.getMessage(), e);
-      }
-
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to get reactions message" + e.getMessage(), e);
     }
+
+  }
 
 }
