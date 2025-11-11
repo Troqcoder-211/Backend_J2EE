@@ -14,7 +14,7 @@ public interface MessageMapper {
   // Entity → DTO
   @Mapping(target = "conversationId", expression = "java(entity.getConversation() != null ? entity.getConversation().getId() : null)")
   @Mapping(target = "senderId", source = "sender.id")
-  @Mapping(target = "replyTo", source = "replyTo.id")
+  @Mapping(target = "replyTo", source = "replyTo")
   @Mapping(target = "type", source = "type")
   @Mapping(target = "attachmentIds", ignore = true)
   MessageDTO toDto(Message entity);

@@ -45,8 +45,8 @@ public class SecurityConfig {
                 // ✅ Cho phép frontend gửi cookie cross-origin
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of("http://localhost:3000")); // domain FE
-                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowedOrigins(List.of("http://localhost:5173")); // domain FE
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                     config.setAllowCredentials(true); // cho phép cookie
                     config.setAllowedHeaders(List.of("Content-Type", "Authorization"));
                     return config;
@@ -61,10 +61,15 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/forgot-password",
                                 "/auth/reset-password",
-                                "/auth/refresh")
+                                "/auth/refresh",
+                                "/auth/change-password",
+                                "/auth/logout",
+                                "/error")
                         .permitAll()
                         .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .logout(logout -> logout.disable())
+                .addFilterBefore(jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -73,7 +78,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE",
+                "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
@@ -90,6 +96,7 @@ public class SecurityConfig {
                         .password(user.getPassword())
                         .roles("USER")
                         .build())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " +
+                        username));
     }
 }

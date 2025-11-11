@@ -1,5 +1,6 @@
 package j2ee.ourteam.websocket;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import j2ee.ourteam.repositories.PresenceRepository;
 import j2ee.ourteam.services.presence.IPresenceService;
 import lombok.RequiredArgsConstructor;
@@ -29,42 +30,26 @@ public class WebSocketEventListener {
 
 
     @EventListener
-    public void handleSessionConnected(SessionConnectEvent event) {
+    public void handleSessionConnected(SessionConnectEvent event) throws JsonProcessingException {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
-        Map<String, Object> attrs = sha.getSessionAttributes();
-        if (attrs == null) return;
-        Object userIdObj = attrs.get("userId");
-        if (userIdObj == null) return;
-        String userId = userIdObj.toString();
+        String userId = (String) sha.getSessionAttributes().get("userId");
+        if (userId == null) return;
 
-
-// mark online in redis
         presenceService.markOnline(userId);
-// publish to other instances
-        presenceService.publishPresenceUpdate(userId + ":online");
-
+        presenceService.publishPresenceUpdate(userId, "online");
 
         presenceRepository.updatePresence(UUID.fromString(userId), true, LocalDateTime.now());
-// send initial presence list to the connected user (example)
-// you can fetch conversation participants and their statuses
-        simpMessagingTemplate.convertAndSendToUser(userId, "/queue/presence", Map.of("type","connected"));
     }
 
 
     @EventListener
-    public void handleSessionDisconnect(SessionDisconnectEvent event) {
+    public void handleSessionDisconnect(SessionDisconnectEvent event) throws JsonProcessingException {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
-        Map<String, Object> attrs = sha.getSessionAttributes();
-        if (attrs == null) return;
-        Object userIdObj = attrs.get("userId");
-        if (userIdObj == null) return;
-        String userId = userIdObj.toString();
+        String userId = (String) sha.getSessionAttributes().get("userId");
+        if (userId == null) return;
 
-
-// mark offline (debounce logic can be added)
         presenceService.markOffline(userId);
-        presenceService.publishPresenceUpdate(userId + ":offline");
-
+        presenceService.publishPresenceUpdate(userId, "offline");
 
         presenceRepository.updatePresence(UUID.fromString(userId), false, LocalDateTime.now());
     }

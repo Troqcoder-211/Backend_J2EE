@@ -7,9 +7,12 @@ import j2ee.ourteam.interfaces.GenericCrudService;
 import j2ee.ourteam.models.message.MessageDTO;
 import j2ee.ourteam.models.message.MessageFilter;
 import j2ee.ourteam.models.messagereaction.CreateMessageReactionDTO;
+import j2ee.ourteam.models.messagereaction.MessageReactionDTO;
 import j2ee.ourteam.models.messageread.MessageReadDTO;
+import j2ee.ourteam.models.message.CreateReplyMessageDTO;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface IMessageService extends GenericCrudService<Message, Object, MessageDTO, UUID> {
   MessageDTO softDelete(UUID id);
@@ -20,7 +23,12 @@ public interface IMessageService extends GenericCrudService<Message, Object, Mes
 
   void deleteReaction(UUID id, UUID userId, String emoji);
 
-  void markAsRead(UUID id, UUID userId);
+  Page<MessageReadDTO> markConversationAsRead(UUID conversationId, UUID userId, Pageable pageable);
 
-  Page<MessageReadDTO> getReadStatus(UUID id, Integer page, Integer limit);
+  Page<MessageReadDTO> getMessageReaders(UUID messageId, Pageable pageable);
+
+  Page<MessageReactionDTO> getReactions(UUID id, Integer page, Integer limit);
+
+  MessageDTO reply(CreateReplyMessageDTO dto);
+
 }
