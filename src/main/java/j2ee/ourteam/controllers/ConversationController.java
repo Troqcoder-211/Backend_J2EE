@@ -12,6 +12,7 @@ import j2ee.ourteam.models.conversation_member.UpdateMuteDTO;
 import j2ee.ourteam.models.conversation_member.UpdateRoleDTO;
 import j2ee.ourteam.services.conversation.IConversationService;
 import j2ee.ourteam.services.conversationmember.IConversationMemberService;
+import j2ee.ourteam.services.storage.ICloudinaryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,12 +31,15 @@ import java.util.UUID;
 public class ConversationController {
     private final IConversationService _conversationService;
     private final IConversationMemberService _conversationMemberService;
+    private  final ICloudinaryService _cloudinaryService;
     @Autowired
 
     public ConversationController(IConversationService conversationService,
-            IConversationMemberService conversationMemberService) {
+            IConversationMemberService conversationMemberService,
+                                  ICloudinaryService cloudinaryService) {
         _conversationService = conversationService;
         _conversationMemberService = conversationMemberService;
+        _cloudinaryService = cloudinaryService;
     }
 
     @GetMapping
@@ -151,4 +156,30 @@ public class ConversationController {
         HttpStatus status = response.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
         return ResponseEntity.status(status).body(response);
     }
+
+    @PostMapping("/{uuid}/upload-avatar")
+    public ResponseEntity<ResponseDTO<String>> uploadAvatar(
+            @PathVariable UUID uuid,
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) {
+
+        User user = (User) authentication.getPrincipal();
+        try {
+            String url = _cloudinaryService.uploadFile(file, "avatars/conversations");
+            UpdateConversationDTO dto = new UpdateConversationDTO();
+            dto.setAvatarS3Key(url);
+
+            ResponseDTO<ConversationDTO> response = _conversationService.updateConversation(uuid, dto, user);
+            if (!response.isSuccess()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ResponseDTO.error(response.getMessage()));
+            }
+
+            return ResponseEntity.ok(ResponseDTO.success("Upload avatar thành công", url));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ResponseDTO.error("Lỗi upload avatar: " + e.getMessage()));
+        }
+    }
+
 }
