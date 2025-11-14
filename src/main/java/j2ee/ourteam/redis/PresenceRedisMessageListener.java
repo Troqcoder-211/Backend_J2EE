@@ -12,6 +12,7 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import java.util.List;
 import java.util.Map;
 
 @Configuration
@@ -37,8 +38,15 @@ public class PresenceRedisMessageListener {
                 // parse JSON { "presence": { "uuid": "online" } }
                 Map<?, ?> payload = objectMapper.readValue(json, Map.class);
 
-                messagingTemplate.convertAndSend("/topic/presence", payload);
+                Map<?, ?> presence = (Map<?, ?>) payload.get("presence");
 
+                List<String> targets = (List<String>) payload.get("targets");
+
+                if (targets != null) {
+                    for (String target : targets) {
+                        messagingTemplate.convertAndSend("/topic/"+target+"/presence", payload);
+                    }
+                }
             } catch (Exception e) {
                 System.err.println("Error parsing presence update: " + e.getMessage());
             }

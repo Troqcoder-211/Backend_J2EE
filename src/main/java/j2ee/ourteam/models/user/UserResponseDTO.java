@@ -20,5 +20,5 @@ public class UserResponseDTO {
     private String userName;
     private String displayName;
     private String avatarS3Key;
-    private boolean isDisabled;
+    private Boolean isDisabled;
 }
