@@ -44,22 +44,26 @@ public class AuthController {
 
         LoginResponseDTO data = authService.login(request, response);
 
-        Cookie accessTokenCookie = new Cookie("access_token", data.getAccessToken());
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(15 * 60);
-        accessTokenCookie.setAttribute("SameSite", "None");
-        accessTokenCookie.setSecure(false);
+//        Cookie accessTokenCookie = new Cookie("access_token", data.getAccessToken());
+//        accessTokenCookie.setHttpOnly(true);
+//        accessTokenCookie.setPath("/");
+//        accessTokenCookie.setMaxAge(15 * 60);
+//        accessTokenCookie.setAttribute("SameSite", "None");
+//        accessTokenCookie.setSecure(false);
+//
+//        Cookie refreshTokenCookie = new Cookie("refresh_token", data.getRefreshToken());
+//        refreshTokenCookie.setHttpOnly(true);
+//        refreshTokenCookie.setPath("/");
+//        refreshTokenCookie.setMaxAge(30 * 24 * 60 * 60);
+//        refreshTokenCookie.setAttribute("SameSite", "None");
+//        refreshTokenCookie.setSecure(false);
+//
+//        response.addCookie(accessTokenCookie);
+//        response.addCookie(refreshTokenCookie);
 
-        Cookie refreshTokenCookie = new Cookie("refresh_token", data.getRefreshToken());
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
-        refreshTokenCookie.setAttribute("SameSite", "None");
-        refreshTokenCookie.setSecure(false);
+        setCookie(response, "access_token", data.getAccessToken(), 15 * 60);
 
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
+        setCookie(response, "refresh_token", data.getRefreshToken(), 30 * 24 * 60 * 60);
 
         return ResponseEntity.ok(Map.of("deviceId", data.getDeviceId()));
     }
@@ -75,14 +79,16 @@ public class AuthController {
 
         String newAccessToken = authService.refreshAccessToken(refreshToken);
 
-        Cookie newAccessTokenCookie = new Cookie("access_token", newAccessToken);
-        newAccessTokenCookie.setHttpOnly(true);
-        newAccessTokenCookie.setPath("/");
-        newAccessTokenCookie.setMaxAge(60 * 15);
-        newAccessTokenCookie.setAttribute("SameSite", "None");
-        newAccessTokenCookie.setSecure(false);
+//        Cookie newAccessTokenCookie = new Cookie("access_token", newAccessToken);
+//        newAccessTokenCookie.setHttpOnly(true);
+//        newAccessTokenCookie.setPath("/");
+//        newAccessTokenCookie.setMaxAge(60 * 15);
+//        newAccessTokenCookie.setAttribute("SameSite", "None");
+//        newAccessTokenCookie.setSecure(false);
+//
+//        response.addCookie(newAccessTokenCookie);
 
-        response.addCookie(newAccessTokenCookie);
+        setCookie(response, "access_token", newAccessToken, 15 * 60);
 
         return ResponseEntity.ok(Map.of("message","Làm mới token thành công"));
     }
@@ -99,22 +105,26 @@ public class AuthController {
         authService.logout(refreshToken);
 
         // Xóa cookie ở trình duyệt
-        Cookie accessCookie = new Cookie("access_token", null);
-        accessCookie.setPath("/");
-        accessCookie.setMaxAge(0);
-        accessCookie.setHttpOnly(true);
-        accessCookie.setAttribute("SameSite", "None");
-        accessCookie.setSecure(false);
+//        Cookie accessCookie = new Cookie("access_token", null);
+//        accessCookie.setPath("/");
+//        accessCookie.setMaxAge(0);
+//        accessCookie.setHttpOnly(true);
+//        accessCookie.setAttribute("SameSite", "None");
+//        accessCookie.setSecure(false);
+//
+//        Cookie refreshCookie = new Cookie("refresh_token", null);
+//        refreshCookie.setPath("/");
+//        refreshCookie.setMaxAge(0);
+//        refreshCookie.setHttpOnly(true);
+//        refreshCookie.setAttribute("SameSite", "None");
+//        refreshCookie.setSecure(false);
+//
+//        response.addCookie(accessCookie);
+//        response.addCookie(refreshCookie);
 
-        Cookie refreshCookie = new Cookie("refresh_token", null);
-        refreshCookie.setPath("/");
-        refreshCookie.setMaxAge(0);
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setAttribute("SameSite", "None");
-        refreshCookie.setSecure(false);
+        setCookie(response, "access_token", null, 0);
 
-        response.addCookie(accessCookie);
-        response.addCookie(refreshCookie);
+        setCookie(response, "refresh_token", null, 0);
 
         return ResponseEntity.ok(Map.of("message","Đăng xuất thành công"));
     }
@@ -147,23 +157,26 @@ public class AuthController {
         authService.changePassword(refreshToken, request);
 
         // Xóa cookie khi đổi mật khẩu thành công
-        Cookie accessCookie = new Cookie("access_token", null);
-        accessCookie.setPath("/");
-        accessCookie.setMaxAge(0);
-        accessCookie.setHttpOnly(true);
-        accessCookie.setAttribute("SameSite", "None");
-        accessCookie.setSecure(false);
+//        Cookie accessCookie = new Cookie("access_token", null);
+//        accessCookie.setPath("/");
+//        accessCookie.setMaxAge(0);
+//        accessCookie.setHttpOnly(true);
+//        accessCookie.setAttribute("SameSite", "None");
+//        accessCookie.setSecure(false);
+//
+//        Cookie refreshCookie = new Cookie("refresh_token", null);
+//        refreshCookie.setPath("/");
+//        refreshCookie.setMaxAge(0);
+//        refreshCookie.setHttpOnly(true);
+//        refreshCookie.setAttribute("SameSite", "None");
+//        refreshCookie.setSecure(false);
+//
+//        httpResponse.addCookie(accessCookie);
+//        httpResponse.addCookie(refreshCookie);
 
-        Cookie refreshCookie = new Cookie("refresh_token", null);
-        refreshCookie.setPath("/");
-        refreshCookie.setMaxAge(0);
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setAttribute("SameSite", "None");
-        refreshCookie.setSecure(false);
+        setCookie(httpResponse, "access_token", null, 0);
 
-        httpResponse.addCookie(accessCookie);
-        httpResponse.addCookie(refreshCookie);
-
+        setCookie(httpResponse, "refresh_token", null, 0);
 
         return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công"));
     }
@@ -185,6 +198,31 @@ public class AuthController {
                 .map(Cookie::getValue)
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * Thiết lập hoặc xóa Cookie HttpOnly.
+     * Tự động cấu hình SameSite và Secure dựa trên môi trường (giả định HTTP cho localhost/dev).
+     */
+    private void setCookie(
+            HttpServletResponse response,
+            String name,
+            String value,
+            int maxAgeSeconds) {
+
+        final String sameSite = "Lax";
+        final boolean secure = false;
+
+        String cookieHeader = String.format(
+                "%s=%s; Path=/; HttpOnly; Max-Age=%d; SameSite=%s%s",
+                name,
+                value == null ? "" : value,
+                maxAgeSeconds,
+                sameSite,
+                secure ? "; Secure" : ""
+        );
+
+        response.addHeader("Set-Cookie", cookieHeader);
     }
 
 }

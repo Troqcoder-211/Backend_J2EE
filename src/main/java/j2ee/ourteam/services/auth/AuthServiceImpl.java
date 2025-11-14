@@ -116,6 +116,7 @@ public class AuthServiceImpl implements IAuthService {
                 .displayName(request.getDisplayName())
                 .avatarS3Key("")
                 .email(request.getEmail())
+                .isDisabled(false)
                 .build();
 
         userRepository.save(user);

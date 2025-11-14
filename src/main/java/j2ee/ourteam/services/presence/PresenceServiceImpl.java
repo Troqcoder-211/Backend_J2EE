@@ -65,8 +65,15 @@ public class PresenceServiceImpl implements IPresenceService {
 
     @Override
     public void publishPresenceUpdate(String userId, String status) throws JsonProcessingException {
+        List<UUID> related = conversationMemberRepository.findRelatedUserIdsByUserId(UUID.fromString(userId));
+
+        related.remove(UUID.fromString(userId));
+
+        List<String> targetIds = related.stream().map(UUID::toString).toList();
+
         Map<String, Object> payload = Map.of(
-                "presence", Map.of(userId, status)
+                "presence", Map.of(userId, status),
+                "targets", targetIds
         );
         redisTemplate.convertAndSend("presence_updates", new ObjectMapper().writeValueAsString(payload));
     }
