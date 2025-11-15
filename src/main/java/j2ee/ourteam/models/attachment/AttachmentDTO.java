@@ -1,6 +1,7 @@
 package j2ee.ourteam.models.attachment;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -23,5 +24,5 @@ public class AttachmentDTO {
   private String thumbnailS3Key;
   private Long sizeBytes;
   private String checksum;
-  private LocalDate createdAt;
+  private LocalDateTime createdAt;
 }

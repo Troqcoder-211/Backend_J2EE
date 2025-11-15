@@ -16,7 +16,7 @@ public interface MessageMapper {
   @Mapping(target = "senderId", source = "sender.id")
   @Mapping(target = "replyTo", source = "replyTo")
   @Mapping(target = "type", source = "type")
-  @Mapping(target = "attachmentIds", ignore = true)
+  @Mapping(target = "attachments", ignore = true)
   MessageDTO toDto(Message entity);
 
   // DTO → Entity

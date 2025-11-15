@@ -21,10 +21,8 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "messages")
@@ -32,6 +30,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(exclude = {"attachments", "reactions", "reads", "replies"})
 public class Message {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -80,10 +79,11 @@ public class Message {
   @OneToMany(mappedBy = "replyTo", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Message> replies;
 
-  // Liên kết attachments
+  // Trong Message.java (chỉ để Debug)
   @Builder.Default
-  @ManyToMany
+  @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   @JoinTable(name = "message_attachments", joinColumns = @JoinColumn(name = "message_id"), inverseJoinColumns = @JoinColumn(name = "attachment_id"))
+  @BatchSize(size = 10)
   private Set<Attachment> attachments = new HashSet<>();
 
   public enum MessageType {

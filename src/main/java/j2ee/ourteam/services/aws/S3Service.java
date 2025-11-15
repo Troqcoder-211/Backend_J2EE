@@ -41,8 +41,7 @@ public class S3Service {
 
     s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
 
-    // return "https://" + bucketName + ".s3.ap-southeast-1.amazonaws.com/" + key;
-    return key;
+      return  "https://" + bucketName + ".s3.ap-southeast-1.amazonaws.com/" + key;
   }
 
   public Resource download(String key) throws IOException {

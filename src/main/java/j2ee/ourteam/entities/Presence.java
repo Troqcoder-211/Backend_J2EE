@@ -11,16 +11,18 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Presence {
 
   @Id
   @Column(name = "user_id")
+  @EqualsAndHashCode.Include
   private UUID userId;
 
   @OneToOne(fetch = FetchType.LAZY)
   @MapsId
   @JoinColumn(name = "user_id")
-  private User user;
+  private User user; // Exclude from equals/hashCode (implicitly, since not @Include)
 
   @Builder.Default
   @Column(name = "is_online", nullable = false)

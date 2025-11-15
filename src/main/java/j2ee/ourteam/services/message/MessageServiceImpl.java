@@ -1,13 +1,14 @@
 package j2ee.ourteam.services.message;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import j2ee.ourteam.entities.*;
+import j2ee.ourteam.mapping.AttachmentMapper;
 import j2ee.ourteam.models.messagereaction.MessageReactionDTO;
 import j2ee.ourteam.repositories.*;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import j2ee.ourteam.controllers.WebSocketController;
 import j2ee.ourteam.enums.message.MessageTypeEnum;
 import j2ee.ourteam.mapping.MessageMapper;
+import j2ee.ourteam.models.attachment.AttachmentDTO;
 import j2ee.ourteam.models.message.CreateMessageDTO;
 import j2ee.ourteam.models.message.CreateReplyMessageDTO;
 import j2ee.ourteam.models.message.MessageDTO;
@@ -43,6 +45,7 @@ public class MessageServiceImpl implements IMessageService {
   private final UserRepository userRepository;
 
   private final MessageMapper messageMapper;
+  private final AttachmentMapper attachmentMapper;
 
   @Autowired
   private WebSocketController webSocketController;
@@ -50,43 +53,151 @@ public class MessageServiceImpl implements IMessageService {
   private static final String ERROR_EMPTY_CONTENT = "Content cannot be empty for text messages";
   private static final String ERROR_EMPTY_ATTACHMENTS = "Attachments are required for non-text messages";
 
+  // Class MessageServiceImple.java (hoặc tương tự)
+
   @Override
+  @Transactional(readOnly = true)
+  public Page<MessageDTO> findAllPaged(MessageFilter filter) {
+    filter.normalize(); // chuẩn hóa sortOrder, sortBy, page, limit
+
+    try {
+      // === Chuẩn hóa Sort Order ===
+      Sort.Direction direction;
+      try {
+        direction = Sort.Direction.fromString(filter.getSortOrder());
+      } catch (Exception ex) {
+        direction = Sort.Direction.DESC; // fallback an toàn
+      }
+
+      // === Validate sortBy có tồn tại trong entity không ===
+      if (!isValidSortField(filter.getSortBy())) {
+        throw new IllegalArgumentException("Invalid sortBy field: " + filter.getSortBy());
+      }
+
+      Pageable pageable = PageRequest.of(
+          Math.max(filter.getPage() - 1, 0),
+          filter.getLimit(),
+          Sort.by(direction, filter.getSortBy()));
+
+      // === 🚀 SỬ DỤNG PHƯƠNG THỨC JOIN FETCH TÙY CHỈNH ===
+      Page<Message> page = messageRepository.findAll(
+          MessageSpecification.filter(filter),
+          pageable);
+
+      return page.map(message -> {
+          Set<Attachment> attachments = message.getAttachments();
+        Set<AttachmentDTO> attachmentDTOs = attachments.stream()
+            .map(attachmentMapper::toDto).collect(Collectors.toSet());
+
+        // 💡 Map ReplyTo (Sử dụng MessageMapper để map đệ quy Message -> MessageDTO)
+        MessageDTO replyToDto = (message.getReplyTo() != null)
+            ? messageMapper.toDto(message.getReplyTo())
+            : null;
+
+        return MessageDTO.builder()
+            .id(message.getId())
+            .content(message.getContent())
+            .type(messageMapper.toEnum(message.getType()))
+            .createdAt(message.getCreatedAt())
+            .editedAt(message.getEditedAt())
+            .isDeleted(message.getIsDeleted())
+
+            .senderId(message.getSender() != null ? message.getSender().getId() : null)
+            .conversationId(message.getConversation() != null ? message.getConversation().getId() : null)
+
+            .attachments(attachmentDTOs)
+            .replyTo(replyToDto)
+            .build();
+      });
+
+    } catch (Exception e) {
+      // Giữ nguyên stack trace cực kỳ quan trọng
+      throw new RuntimeException("Failed to findAllPaged: " + e.getMessage(), e);
+    }
+  }
+
+  // Hàm kiểm tra sortBy hợp lệ
+  private boolean isValidSortField(String field) {
+    return Arrays.stream(Message.class.getDeclaredFields())
+        .anyMatch(f -> f.getName().equals(field));
+  }
+
+  @Override
+  @Transactional
   public MessageDTO create(Object dto) {
     if (!(dto instanceof CreateMessageDTO createDto)) {
       throw new IllegalArgumentException("Invalid DTO type for create");
     }
 
+    // Validate input
     validateMessageInput(createDto);
 
+    // Lấy entities
     Conversation conversation = findConversation(createDto.getConversationId());
     User sender = findSender(createDto.getSenderId());
-    Message replyTo = findReplyMessage(createDto.getReplyTo());
+    Message replyTo = createDto.getReplyTo() != null ? findReplyMessage(createDto.getReplyTo()) : null;
 
+    // Map DTO → entity
     Message message = messageMapper.toEntity(createDto);
     message.setConversation(conversation);
     message.setSender(sender);
     message.setReplyTo(replyTo);
 
-    attachFiles(message, createDto.getAttachmentIds());
+    // Gắn attachments nếu có
+    Set<AttachmentDTO> attachmentsDtoSet = null;
 
+    if (createDto.getAttachmentIds() != null && !createDto.getAttachmentIds().isEmpty()) {
+      List<Attachment> attachments = attachmentRepository.findAllById(createDto.getAttachmentIds());
+
+      if (attachments.size() != createDto.getAttachmentIds().size()) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Some attachments not found");
+      }
+
+      message.setAttachments(new HashSet<>(attachments));
+
+      // Map Attachment → AttachmentDTO
+      attachmentsDtoSet = attachments.stream()
+          .map(a -> AttachmentDTO.builder()
+              .id(a.getId())
+              .uploaderId(a.getUploader().getId())
+              .conversationId(a.getConversation().getId())
+              .filename(a.getFilename())
+              .mimeType(a.getMimeType())
+              .sizeBytes(a.getSizeBytes())
+              .s3Key(a.getS3Key())
+              .thumbnailS3Key(a.getThumbnailS3Key())
+              .build())
+          .collect(Collectors.toSet());
+    }
+
+    // Lưu message
     Message saved = messageRepository.save(message);
 
-    webSocketController.pushMessage(messageMapper.toDto(saved));
+    // After saving
+    MessageDTO result = messageMapper.toDto(saved);
 
-    return messageMapper.toDto(saved);
+    if (attachmentsDtoSet != null) {
+      result.setAttachments(attachmentsDtoSet);
+    }
+
+    // Push websocket
+    webSocketController.pushMessage(result);
+
+    return result;
   }
 
+  @Override
   @Transactional
   public MessageDTO reply(CreateReplyMessageDTO dto) {
     if (dto == null)
       throw new IllegalArgumentException("DTO cannot be null");
 
-    // validate conversation, sender and original message existence
+    // Lấy entities
     Conversation conversation = findConversation(dto.getConversationId());
     User sender = findSender(dto.getSenderId());
     Message original = findReplyMessage(dto.getReplyToMessageId());
 
-    // Build reply message
+    // Tạo message trả lời
     Message reply = Message.builder()
         .conversation(conversation)
         .sender(sender)
@@ -95,16 +206,43 @@ public class MessageServiceImpl implements IMessageService {
         .replyTo(original)
         .build();
 
-    // Save reply
+    // Gắn attachments nếu có
+    Set<AttachmentDTO> attachmentsDtoSet = null;
+    if (dto.getAttachmentIds() != null && !dto.getAttachmentIds().isEmpty()) {
+      List<Attachment> attachments = attachmentRepository.findAllById(dto.getAttachmentIds());
+      if (attachments.size() != dto.getAttachmentIds().size()) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Some attachments not found");
+      }
+      reply.setAttachments(new HashSet<>(attachments));
+
+      attachmentsDtoSet = attachments.stream()
+          .map(a -> AttachmentDTO.builder()
+              .id(a.getId())
+              .filename(a.getFilename())
+              .mimeType(a.getMimeType())
+              .sizeBytes(a.getSizeBytes())
+              .s3Key(a.getS3Key())
+              .thumbnailS3Key(a.getThumbnailS3Key())
+              .build())
+          .collect(Collectors.toSet());
+    }
+
+    // Lưu message
     Message saved = messageRepository.save(reply);
 
-    // Optionally update read status: mark as read for sender
-    LocalDateTime now = LocalDateTime.now();
-    messageReadRepository.insertMessageRead(saved.getId(), sender.getId(), now);
+    // Mark sender has read
+    messageReadRepository.insertMessageRead(saved.getId(), sender.getId(), LocalDateTime.now());
 
-    webSocketController.pushMessage(messageMapper.toDto(saved));
+    // After saving
+    MessageDTO result = messageMapper.toDto(saved);
+    if (attachmentsDtoSet != null) {
+      result.setAttachments(attachmentsDtoSet);
+    }
 
-    return messageMapper.toDto(saved);
+    // Push websocket
+    webSocketController.pushMessage(result);
+
+    return result;
   }
 
   private void validateMessageInput(CreateMessageDTO dto) {
@@ -197,23 +335,6 @@ public class MessageServiceImpl implements IMessageService {
       messageRepository.delete(message);
     } catch (Exception e) {
       throw new RuntimeException("Failed to delete messge" + e.getMessage(), e);
-    }
-  }
-
-  @Override
-  public Page<MessageDTO> findAllPaged(MessageFilter filter) {
-    filter.normalize();
-
-    try {
-      Pageable pageable = PageRequest.of(
-          filter.getPage() - 1,
-          filter.getLimit(),
-          Sort.by(Sort.Direction.fromString(filter.getSortOrder()), filter.getSortBy()));
-
-      return messageRepository.findAll(MessageSpecification.filter(filter), pageable)
-          .map(messageMapper::toDto);
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to findAllPaged" + e.getMessage(), e);
     }
   }
 

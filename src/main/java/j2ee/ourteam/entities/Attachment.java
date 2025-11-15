@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,10 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "attachments")
@@ -26,6 +24,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"messages"})
 public class Attachment {
 
   @Id
@@ -66,7 +65,7 @@ public class Attachment {
   private LocalDateTime createdAt = LocalDateTime.now();
 
   @Builder.Default
-  @ManyToMany(mappedBy = "attachments")
-  private Set<Message> messages = new HashSet<>();
+  @ManyToMany(mappedBy = "attachments", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  private Set<Message> messages = new HashSet<>();;
 
 }
