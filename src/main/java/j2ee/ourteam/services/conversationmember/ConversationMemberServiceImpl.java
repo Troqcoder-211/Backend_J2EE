@@ -74,7 +74,7 @@ public class ConversationMemberServiceImpl implements IConversationMemberService
         }
         User user = userOpt.get();
 
-        ResponseDTO<Void> check = checkIfMemberOrOwner(conversationId, user.getId());
+        ResponseDTO<Void> check = checkIfMemberOrAdmin(conversationId, user.getId());
         if (!check.isSuccess()) {
             return ResponseDTO.error(check.getMessage());
         }
@@ -233,9 +233,20 @@ public class ConversationMemberServiceImpl implements IConversationMemberService
         }
         ConversationMember member = memberOpt.get();
 
-        if (member.getRole() == Role.OWNER) {
-            return ResponseDTO.error("Owner cannot leave. Transfer ownership first");
+        if (member.getRole() == Role.ADMIN) {
+            List<ConversationMember> otherMembers = _conversationMemberRepository.findByIdConversationId(conversationId)
+                    .stream()
+                    .filter(m -> !m.getUser().getId().equals(user.getId()))
+                    .toList();
+
+            boolean hasOtherAdminOrOwner = otherMembers.stream()
+                    .anyMatch(m->m.getRole() == Role.ADMIN);
+
+            if (!hasOtherAdminOrOwner){
+                return ResponseDTO.error("Owner cannot leave. Transfer ownership first");
+            }
         }
+
 
         _conversationMemberRepository.delete(member);
         return ResponseDTO.success("Rời nhóm thành công", null);
@@ -243,7 +254,7 @@ public class ConversationMemberServiceImpl implements IConversationMemberService
 
 
     // Helper (đã tối ưu, không cần try-catch nữa vì orElseThrow handle)
-    private ResponseDTO<Void> checkIfMemberOrOwner(UUID conversationId, UUID userId) {
+    private ResponseDTO<Void> checkIfMemberOrAdmin(UUID conversationId, UUID userId) {
         Optional<Conversation> convOpt = _conversationRepository.findById(conversationId);
         if (convOpt.isEmpty()) {
             return ResponseDTO.error("Conversation not found");

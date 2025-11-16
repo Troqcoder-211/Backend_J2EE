@@ -84,22 +84,22 @@ public class ConversationServiceImpl implements IConversationService {
         conversation.setCreatedBy(user);
         Conversation saved = _conversationRepository.save(conversation);
 
-        // 3️⃣ Thêm OWNER (người tạo)
-        ConversationMember ownerMember = ConversationMember.builder()
+        // 3️⃣ Thêm Admin (người tạo)
+        ConversationMember AdminMember = ConversationMember.builder()
                 .id(new ConversationMemberId(saved.getId(), user.getId()))
                 .conversation(saved)
                 .user(user)
-                .role(ConversationMember.Role.OWNER)
+                .role(ConversationMember.Role.ADMIN)
                 .isMuted(false)
                 .joinedAt(LocalDateTime.now())
                 .build();
-        _conversationMemberRepository.save(ownerMember);
+        _conversationMemberRepository.save(AdminMember);
 
         // 4️⃣ Nếu client có gửi thêm danh sách members thì thêm luôn
         if (dto.getMembers() != null && !dto.getMembers().isEmpty()) {
             for (ConversationMemberDTO m : dto.getMembers()) {
                 if (m.getUserId() == null || m.getUserId().equals(user.getId())) {
-                    continue; // bỏ qua owner
+                    continue; // bỏ qua Admin
                 }
 
                 Optional<User> uOpt = _userRepository.findById(m.getUserId());
@@ -129,7 +129,7 @@ public class ConversationServiceImpl implements IConversationService {
         return ResponseDTO.success("Tạo conversation thành công", _conversationMapper.toDto(saved));
     }
 
-    // PATCH /conversations/{id} (đổi tên/avatar)
+    //Update
     @Transactional
     @Override
     public ResponseDTO<ConversationDTO> updateConversation(UUID id, UpdateConversationDTO dto, User currentUser) {
@@ -145,14 +145,36 @@ public class ConversationServiceImpl implements IConversationService {
         }
         Conversation conversation = convOpt.get();
 
+        // ✅ Chỉ admin mới được đổi thông tin nhóm
         if (!conversation.getCreatedBy().getId().equals(user.getId())) {
-            return ResponseDTO.error("Only the group owner can rename or change avatar");
+            return ResponseDTO.error("Only the group Admin can rename or change avatar");
         }
 
-        _conversationMapper.updateEntityFromDto(dto, conversation);
-        Conversation updated = _conversationRepository.save(conversation);
-        return ResponseDTO.success("Cập nhật conversation thành công", _conversationMapper.toDto(updated));
+        boolean updated = false;
+
+        // ✅ Nếu FE chỉ gửi name thì chỉ cập nhật name
+        if (dto.getName() != null && !dto.getName().isBlank()) {
+            conversation.setName(dto.getName());
+            updated = true;
+        }
+
+        // ✅ Nếu FE chỉ gửi avatarS3Key thì chỉ cập nhật avatar
+        if (dto.getAvatarS3Key() != null && !dto.getAvatarS3Key().isBlank()) {
+            conversation.setAvatarS3Key(dto.getAvatarS3Key());
+            updated = true;
+        }
+
+        if (!updated) {
+            return ResponseDTO.error("Không có dữ liệu nào để cập nhật");
+        }
+
+        Conversation saved = _conversationRepository.save(conversation);
+        return ResponseDTO.success(
+                "Cập nhật conversation thành công",
+                _conversationMapper.toDto(saved)
+        );
     }
+
 
     // DELETE /conversations/{id} (xóa, code cũ dùng deleteById nhưng với user)
     @Transactional
@@ -171,7 +193,7 @@ public class ConversationServiceImpl implements IConversationService {
         Conversation conversation = convOpt.get();
 
         if (!conversation.getCreatedBy().getId().equals(user.getId())) {
-            return ResponseDTO.error("Only the group owner can delete it");
+            return ResponseDTO.error("Only the group Admin can delete it");
         }
 
         _conversationRepository.deleteById(id);
