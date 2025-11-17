@@ -45,12 +45,23 @@ public class MessageServiceImpl implements IMessageService {
   private final MessageMapper messageMapper;
 
   @Autowired
-  private WebSocketController webSocketController;
+  WebSocketController webSocketController;
 
   private static final String ERROR_EMPTY_CONTENT = "Content cannot be empty for text messages";
   private static final String ERROR_EMPTY_ATTACHMENTS = "Attachments are required for non-text messages";
 
-  @Override
+    public MessageServiceImpl(MessageRepository messageRepository, MessageReactionRepository messageReactionRepository, MessageReadRepository messageReadRepository, ConversationRepository conversationRepository, ConversationMemberRepository conversationMemberRepository, AttachmentRepository attachmentRepository, MessageMapper messageMapper, UserRepository userRepository) {
+            this.messageRepository = messageRepository;
+            this.messageReactionRepository = messageReactionRepository;
+            this.messageReadRepository = messageReadRepository;
+            this.conversationRepository = conversationRepository;
+            this.conversationMemberRepository = conversationMemberRepository;
+            this.attachmentRepository = attachmentRepository;
+            this.userRepository = userRepository;
+            this.messageMapper = messageMapper;
+    }
+
+    @Override
   public MessageDTO create(Object dto) {
     if (!(dto instanceof CreateMessageDTO createDto)) {
       throw new IllegalArgumentException("Invalid DTO type for create");
