@@ -35,7 +35,7 @@ public class UserServiceImpl implements IUserService {
 
   @Override
   public PageResponse<UserResponseDTO> getUserList(GetUserListRequestDTO request) {
-    int page = (request.getPage() >= 0) ? request.getPage() - 1 : 0;
+    int page = (request.getPage() > 0) ? request.getPage() - 1 : 0;
     int limit = (request.getLimit() > 0) ? request.getLimit() : 10;
 
     Pageable pageable = PageRequest.of(page, limit);
