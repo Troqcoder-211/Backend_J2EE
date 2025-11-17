@@ -1,7 +1,6 @@
-package j2ee.ourteam.auth;
+package j2ee.ourteam.services.auth;
 
 import j2ee.ourteam.entities.User;
-import j2ee.ourteam.services.auth.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
