@@ -197,13 +197,13 @@ class UserServiceImplTest {
         request.setUserName("test");
 
         Page<User> page = new PageImpl<>(List.of(new User()));
-        when(userRepository.findByUserNameContaining(eq("test"), any(Pageable.class))).thenReturn(page);
+        when(userRepository.findByUserNameContainingAndIsDisabledFalse(eq("test"), any(Pageable.class))).thenReturn(page);
         when(userMapper.toUserResponseDTO(any(User.class))).thenReturn(new UserResponseDTO());
 
         PageResponse<UserResponseDTO> result = userService.getUserList(request);
 
         assertNotNull(result);
-        verify(userRepository).findByUserNameContaining(eq("test"), any(Pageable.class));
+        verify(userRepository).findByUserNameContainingAndIsDisabledFalse(eq("test"), any(Pageable.class));
     }
 
     // === Các hàm chưa triển khai: deleteUser, findAll, findById, create, update, deleteById ===
