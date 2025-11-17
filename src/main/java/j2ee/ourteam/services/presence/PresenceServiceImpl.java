@@ -18,7 +18,7 @@ public class PresenceServiceImpl implements IPresenceService {
 
     private final StringRedisTemplate redisTemplate;
     private ValueOperations<String, String> ops;
-    private static final Duration TTL = Duration.ofSeconds(60);
+    static final Duration TTL = Duration.ofSeconds(60);
     private final ConversationMemberRepository conversationMemberRepository;
     private static final String PRESENCE_KEY_PREFIX = "presence:";
 

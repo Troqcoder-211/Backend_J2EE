@@ -22,4 +22,8 @@ public class CreateMessageReactionDTO {
 
   @Builder.Default
   private LocalDateTime createdAt = LocalDateTime.now();
+
+    public CreateMessageReactionDTO() {
+
+    }
 }
