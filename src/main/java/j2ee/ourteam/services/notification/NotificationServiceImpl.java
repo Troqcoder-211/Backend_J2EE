@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
+//@RequiredArgsConstructor
 public class NotificationServiceImpl implements INotificationService {
   private final NotificationRepository notificationRepository;
   private final UserRepository userRepository;
@@ -38,16 +40,10 @@ public class NotificationServiceImpl implements INotificationService {
   private final NotificationMapper notificationMapper;
 
   @Autowired
-  WebSocketController webSocketController;
+  private WebSocketController webSocketController;
 
-    public NotificationServiceImpl(NotificationRepository notificationRepository, UserRepository userRepository, DeviceRepository deviceRepository, NotificationMapper notificationMapper) {
-        this.notificationMapper = notificationMapper;
-        this.notificationRepository = notificationRepository;
-        this.userRepository = userRepository;
-        this.deviceRepository = deviceRepository;
-    }
 
-    @Override
+  @Override
   @Transactional
   public NotificationDTO create(Object dto) {
     if (!(dto instanceof CreateNotificationDTO createDto)) {
