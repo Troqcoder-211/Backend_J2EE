@@ -34,7 +34,7 @@ class MessageServiceImplTest {
     private MessageServiceImpl service;
 
     @BeforeEach
-    void setUp() {
+    void setup() {
         messageRepository = mock(MessageRepository.class);
         messageReactionRepository = mock(MessageReactionRepository.class);
         messageReadRepository = mock(MessageReadRepository.class);
@@ -44,7 +44,6 @@ class MessageServiceImplTest {
         userRepository = mock(UserRepository.class);
         messageMapper = mock(MessageMapper.class);
         webSocketController = mock(WebSocketController.class);
-
         service = new MessageServiceImpl(
                 messageRepository,
                 messageReactionRepository,
@@ -52,10 +51,10 @@ class MessageServiceImplTest {
                 conversationRepository,
                 conversationMemberRepository,
                 attachmentRepository,
+                userRepository,
                 messageMapper,
-                userRepository
+                webSocketController
         );
-        service.webSocketController = webSocketController;
     }
 
     @Test

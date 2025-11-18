@@ -44,8 +44,14 @@ class NotificationServiceImplTest {
         notificationMapper = mock(NotificationMapper.class);
         webSocketController = mock(WebSocketController.class);
 
-        service = new NotificationServiceImpl(notificationRepository, userRepository, deviceRepository, notificationMapper);
-        service.webSocketController = webSocketController;
+        service = new NotificationServiceImpl(
+                notificationRepository,
+                userRepository,
+                deviceRepository,
+                notificationMapper,
+                webSocketController
+        );
+
     }
 
     @Test

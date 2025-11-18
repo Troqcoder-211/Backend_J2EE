@@ -8,6 +8,7 @@ import java.util.UUID;
 import j2ee.ourteam.entities.*;
 import j2ee.ourteam.models.messagereaction.MessageReactionDTO;
 import j2ee.ourteam.repositories.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -45,21 +46,11 @@ public class MessageServiceImpl implements IMessageService {
   private final MessageMapper messageMapper;
 
   @Autowired
-  WebSocketController webSocketController;
+  private WebSocketController webSocketController;
 
   private static final String ERROR_EMPTY_CONTENT = "Content cannot be empty for text messages";
   private static final String ERROR_EMPTY_ATTACHMENTS = "Attachments are required for non-text messages";
 
-    public MessageServiceImpl(MessageRepository messageRepository, MessageReactionRepository messageReactionRepository, MessageReadRepository messageReadRepository, ConversationRepository conversationRepository, ConversationMemberRepository conversationMemberRepository, AttachmentRepository attachmentRepository, MessageMapper messageMapper, UserRepository userRepository) {
-            this.messageRepository = messageRepository;
-            this.messageReactionRepository = messageReactionRepository;
-            this.messageReadRepository = messageReadRepository;
-            this.conversationRepository = conversationRepository;
-            this.conversationMemberRepository = conversationMemberRepository;
-            this.attachmentRepository = attachmentRepository;
-            this.userRepository = userRepository;
-            this.messageMapper = messageMapper;
-    }
 
     @Override
   public MessageDTO create(Object dto) {
@@ -87,6 +78,7 @@ public class MessageServiceImpl implements IMessageService {
     return messageMapper.toDto(saved);
   }
 
+  @Override
   @Transactional
   public MessageDTO reply(CreateReplyMessageDTO dto) {
     if (dto == null)
