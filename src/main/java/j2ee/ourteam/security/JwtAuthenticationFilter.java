@@ -49,30 +49,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             username = jwtService.extractUsername(accessToken);
             deviceId = jwtService.extractDeviceId(accessToken);
-        } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or malformed token");
-            return;
-        }
 
-        // Nếu chưa có Authentication trong context, xác thực user
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            Optional<User> userOpt = userRepository.findByUserName(username);
+            // Nếu chưa có Authentication trong context, xác thực user
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                Optional<User> userOpt = userRepository.findByUserName(username);
 
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
 
-                if (jwtService.isTokenValid(accessToken, user)) {
-                    // Tạo Authentication
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            user,
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole())));
-                    // Gắn deviceId làm thông tin phụ
-                    authToken.setDetails(deviceId);
+                    if (jwtService.isTokenValid(accessToken, user)) {
+                        // Tạo Authentication
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                user,
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole())));
+                        // Gắn deviceId làm thông tin phụ
+                        authToken.setDetails(deviceId);
 
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    }
                 }
             }
+        } catch (Exception e) {
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);
