@@ -5,24 +5,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import j2ee.ourteam.models.presence.PresenceResponseDTO;
 import j2ee.ourteam.repositories.ConversationMemberRepository;
 
-import lombok.RequiredArgsConstructor;
+import j2ee.ourteam.repositories.PresenceRepository;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
 public class PresenceServiceImpl implements IPresenceService {
 
+    private final PresenceRepository presenceRepository;
     private final StringRedisTemplate redisTemplate;
     private ValueOperations<String, String> ops;
-    static final Duration TTL = Duration.ofSeconds(60);
     private final ConversationMemberRepository conversationMemberRepository;
-    private static final String PRESENCE_KEY_PREFIX = "presence:";
+    static final String PRESENCE_KEY_PREFIX = "presence:";
+    static final Duration TTL = Duration.ofSeconds(60);
 
-    public PresenceServiceImpl(StringRedisTemplate redisTemplate, ConversationMemberRepository conversationMemberRepository){
+    public PresenceServiceImpl(PresenceRepository presenceRepository, StringRedisTemplate redisTemplate, ConversationMemberRepository conversationMemberRepository){
+        this.presenceRepository = presenceRepository;
         this.redisTemplate = redisTemplate;
         this.conversationMemberRepository = conversationMemberRepository;
         this. ops = redisTemplate.opsForValue();
@@ -61,6 +65,12 @@ public class PresenceServiceImpl implements IPresenceService {
     @Override
     public String key(String userId) {
         return PRESENCE_KEY_PREFIX + userId;
+    }
+
+    @Override
+    @Transactional
+    public void updatePresence(UUID id, boolean status, LocalDateTime ts) {
+        presenceRepository.updatePresence(id, status, ts);
     }
 
     @Override

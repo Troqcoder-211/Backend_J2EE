@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import j2ee.ourteam.models.presence.PresenceResponseDTO;
 import j2ee.ourteam.repositories.ConversationMemberRepository;
+import j2ee.ourteam.repositories.PresenceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -23,16 +24,18 @@ class PresenceServiceImplTest {
     private ValueOperations<String, String> ops;
     private ConversationMemberRepository conversationMemberRepository;
     private PresenceServiceImpl presenceService;
+    private PresenceRepository presenceRepository;
 
     @BeforeEach
     void setUp() {
         redisTemplate = mock(StringRedisTemplate.class);
         ops = mock(ValueOperations.class);
         when(redisTemplate.opsForValue()).thenReturn(ops);
+        presenceRepository = mock(PresenceRepository.class);
 
         conversationMemberRepository = mock(ConversationMemberRepository.class);
 
-        presenceService = new PresenceServiceImpl(redisTemplate, conversationMemberRepository);
+        presenceService = new PresenceServiceImpl(presenceRepository, redisTemplate, conversationMemberRepository);
     }
 
     @Test

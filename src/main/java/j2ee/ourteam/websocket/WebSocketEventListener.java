@@ -1,11 +1,10 @@
 package j2ee.ourteam.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import j2ee.ourteam.repositories.PresenceRepository;
+
 import j2ee.ourteam.services.presence.IPresenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
@@ -13,7 +12,6 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
 
 
@@ -21,13 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class WebSocketEventListener {
 
-
     private final IPresenceService presenceService;
-
-    private final SimpMessagingTemplate simpMessagingTemplate;
-
-    private final PresenceRepository presenceRepository;
-
 
     @EventListener
     public void handleSessionConnected(SessionConnectEvent event) throws JsonProcessingException {
@@ -38,7 +30,7 @@ public class WebSocketEventListener {
         presenceService.markOnline(userId);
         presenceService.publishPresenceUpdate(userId, "online");
 
-        presenceRepository.updatePresence(UUID.fromString(userId), true, LocalDateTime.now());
+        presenceService.updatePresence(UUID.fromString(userId), true, LocalDateTime.now());
     }
 
 
@@ -51,6 +43,6 @@ public class WebSocketEventListener {
         presenceService.markOffline(userId);
         presenceService.publishPresenceUpdate(userId, "offline");
 
-        presenceRepository.updatePresence(UUID.fromString(userId), false, LocalDateTime.now());
+        presenceService.updatePresence(UUID.fromString(userId), false, LocalDateTime.now());
     }
 }
