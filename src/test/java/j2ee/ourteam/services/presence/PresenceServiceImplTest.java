@@ -31,7 +31,11 @@ class PresenceServiceImplTest extends BaseTest {
         when(redisTemplate.opsForValue()).thenReturn(ops);
 
         // conversationMemberRepository đã được @Mock sẵn từ BaseTest
-        presenceService = new PresenceServiceImpl(redisTemplate, conversationMemberRepository);
+        presenceService = new PresenceServiceImpl(
+                presenceRepository,
+                redisTemplate,
+                conversationMemberRepository
+        );
     }
 
     @Test
