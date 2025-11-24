@@ -1,5 +1,6 @@
 package j2ee.ourteam.services.otp;
 
+import j2ee.ourteam.BaseTest;
 import j2ee.ourteam.entities.PasswordResetOtp;
 import j2ee.ourteam.entities.User;
 import j2ee.ourteam.repositories.PasswordResetOtpRepository;
@@ -14,7 +15,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class OtpServiceImplTest {
+class OtpServiceImplTest extends BaseTest {
 
     private PasswordResetOtpRepository passwordResetOtpRepository;
     private OtpServiceImpl otpService;

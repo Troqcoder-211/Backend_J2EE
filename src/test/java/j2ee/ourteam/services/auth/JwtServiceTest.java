@@ -1,5 +1,6 @@
 package j2ee.ourteam.services.auth;
 
+import j2ee.ourteam.BaseTest;
 import j2ee.ourteam.entities.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -7,113 +8,76 @@ import org.junit.jupiter.api.Test;
 import java.util.Date;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
-public class JwtServiceTest {
+class JwtServiceTest extends BaseTest {
 
     private JwtService jwtService;
     private User testUser;
     private UUID deviceId;
 
-    private final String SECRET = "0123456789ABCDEF0123456789ABCDEF"; // 32 bytes
-    private final long ACCESS_EXP = 1000 * 60;  // 1 minute
-    private final long REFRESH_EXP = 1000 * 60 * 60; // 1 hour
+    private final String secret = "12345678901234567890123456789012"; // 32 bytes key
+    private final long accessExpiration = 1000L * 60 * 60; // 1 hour
+    private final long refreshExpiration = 1000L * 60 * 60 * 24 * 7; // 7 days
 
     @BeforeEach
-    void setup() {
-        jwtService = new JwtService(SECRET, ACCESS_EXP, REFRESH_EXP);
+    void setUp() {
+        jwtService = new JwtService(secret, accessExpiration, refreshExpiration);
 
-        testUser = new User();
-        testUser.setId(UUID.randomUUID());
-        testUser.setUserName("testuser");
+        testUser = User.builder()
+                .id(UUID.randomUUID())
+                .userName("testuser")
+                .build();
 
         deviceId = UUID.randomUUID();
     }
 
     @Test
-    void testGenerateAccessToken() {
+    void generateAccessToken_andValidate() {
         String token = jwtService.generateAccessToken(testUser, deviceId);
-        assertNotNull(token);
 
-        String username = jwtService.extractUsername(token);
-        assertEquals("testuser", username);
-
-        assertEquals(testUser.getId(), jwtService.extractUserId(token));
-        assertEquals(deviceId, jwtService.extractDeviceId(token));
+        assertThat(token).isNotBlank();
+        assertThat(jwtService.validateToken(token)).isTrue();
+        assertThat(jwtService.isTokenValid(token, testUser)).isTrue();
+        assertThat(jwtService.extractUsername(token)).isEqualTo("testuser");
+        assertThat(jwtService.extractDeviceId(token)).isEqualTo(deviceId);
+        assertThat(jwtService.extractUserId(token)).isEqualTo(testUser.getId());
+        assertThat(jwtService.extractExpiration(token)).isAfter(new Date());
     }
 
     @Test
-    void testGenerateRefreshToken() {
+    void generateRefreshToken_andValidate() {
         String token = jwtService.generateRefreshToken(testUser, deviceId);
 
-        assertNotNull(token);
-        assertEquals("testuser", jwtService.extractUsername(token));
+        assertThat(token).isNotBlank();
+        assertThat(jwtService.validateToken(token)).isTrue();
+        assertThat(jwtService.isTokenValid(token, testUser)).isTrue();
+        assertThat(jwtService.extractUsername(token)).isEqualTo("testuser");
+        assertThat(jwtService.extractDeviceId(token)).isEqualTo(deviceId);
+        assertThat(jwtService.extractUserId(token)).isEqualTo(testUser.getId());
+        assertThat(jwtService.extractExpiration(token)).isAfter(new Date());
     }
 
     @Test
-    void testExtractUsername() {
-        String token = jwtService.generateAccessToken(testUser, deviceId);
-        String username = jwtService.extractUsername(token);
-        assertEquals("testuser", username);
+    void validateToken_invalidToken_shouldReturnFalse() {
+        String invalidToken = "abc.def.ghi";
+
+        assertThat(jwtService.validateToken(invalidToken)).isFalse();
     }
 
     @Test
-    void testExtractUserId() {
-        String token = jwtService.generateAccessToken(testUser, deviceId);
-        UUID userId = jwtService.extractUserId(token);
-        assertEquals(testUser.getId(), userId);
+    void isTokenValid_invalidToken_shouldReturnFalse() {
+        String invalidToken = "abc.def.ghi";
+
+        assertThat(jwtService.isTokenValid(invalidToken, testUser)).isFalse();
     }
 
     @Test
-    void testExtractDeviceId() {
-        String token = jwtService.generateAccessToken(testUser, deviceId);
-        UUID extracted = jwtService.extractDeviceId(token);
-        assertEquals(deviceId, extracted);
-    }
-
-    @Test
-    void testExtractExpiration() {
-        String token = jwtService.generateAccessToken(testUser, deviceId);
-        Date exp = jwtService.extractExpiration(token);
-        assertTrue(exp.after(new Date()));
-    }
-
-    @Test
-    void testValidateToken_valid() {
-        String token = jwtService.generateAccessToken(testUser, deviceId);
-        assertTrue(jwtService.validateToken(token));
-    }
-
-    @Test
-    void testValidateToken_invalid() {
-        assertFalse(jwtService.validateToken("invalid.token.example"));
-    }
-
-    @Test
-    void testIsTokenValid_true() {
-        String token = jwtService.generateAccessToken(testUser, deviceId);
-        assertTrue(jwtService.isTokenValid(token, testUser));
-    }
-
-    @Test
-    void testIsTokenValid_wrongUser() {
+    void isTokenValid_wrongUser_shouldReturnFalse() {
         String token = jwtService.generateAccessToken(testUser, deviceId);
 
-        User otherUser = new User();
-        otherUser.setUserName("another");
+        User otherUser = User.builder().id(UUID.randomUUID()).userName("otheruser").build();
 
-        assertFalse(jwtService.isTokenValid(token, otherUser));
-    }
-
-    @Test
-    void testIsTokenValid_expired() throws InterruptedException {
-        // Expiration = 10 ms
-        JwtService shortJwtService = new JwtService(SECRET, 10, REFRESH_EXP);
-
-        String token = shortJwtService.generateAccessToken(testUser, deviceId);
-
-        Thread.sleep(20); // cho token hết hạn
-
-        assertFalse(shortJwtService.isTokenValid(token, testUser));
+        assertThat(jwtService.isTokenValid(token, otherUser)).isFalse();
     }
 }

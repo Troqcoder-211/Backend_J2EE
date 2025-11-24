@@ -1,5 +1,6 @@
 package j2ee.ourteam.services.reaction;
 
+import j2ee.ourteam.BaseTest;
 import j2ee.ourteam.entities.MessageReactionId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MessageReactionServiceImplTest {
+class MessageReactionServiceImplTest extends BaseTest {
 
     private MessageReactionServiceImpl service;
 

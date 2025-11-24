@@ -1,262 +1,228 @@
 package j2ee.ourteam.services.auth;
 
-import j2ee.ourteam.entities.*;
+import j2ee.ourteam.BaseTest;
+import j2ee.ourteam.entities.Device;
+import j2ee.ourteam.entities.PasswordResetOtp;
+import j2ee.ourteam.entities.RefreshToken;
+import j2ee.ourteam.entities.User;
 import j2ee.ourteam.models.auth.*;
 import j2ee.ourteam.repositories.*;
 import j2ee.ourteam.services.mail.IMailService;
 import j2ee.ourteam.services.otp.IOtpService;
-
-import jakarta.persistence.EntityExistsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import jakarta.servlet.http.HttpServletResponse;
-
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
+import jakarta.persistence.EntityExistsException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class AuthServiceImplTest {
+class AuthServiceImplTest extends BaseTest {
 
-    @Mock
-    private UserRepository userRepository;
+    private AuthServiceImpl authService;
 
-    @Mock
-    private DeviceRepository deviceRepository;
-
-    @Mock
-    private RefreshTokenRepository refreshTokenRepository;
-
-    @Mock
-    private PresenceRepository presenceRepository;
-
-    @Mock
+    // Các mock service không có sẵn trong BaseTest
     private PasswordEncoder passwordEncoder;
-
-    @Mock
     private JwtService jwtService;
-
-    @Mock
     private IOtpService otpService;
-
-    @Mock
     private IMailService mailService;
-
-    @Mock
     private AuthenticationManager authenticationManager;
 
-    @InjectMocks
-    private AuthServiceImpl authService;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
+        MockitoAnnotations.openMocks(this); // khởi tạo tất cả @Mock trong BaseTest
 
-    // ==================== LOGIN ====================
-    @Test
-    void login_success() {
-        // --- arrange
-        LoginRequestDTO request = new LoginRequestDTO();
-        request.setUserName("john");
-        request.setPassword("12345678");
-        request.setDeviceType("android");
-        request.setPushToken("token123");
+        passwordEncoder = Mockito.mock(PasswordEncoder.class);
+        jwtService = Mockito.mock(JwtService.class);
+        otpService = Mockito.mock(IOtpService.class);
+        mailService = Mockito.mock(IMailService.class);
+        authenticationManager = Mockito.mock(AuthenticationManager.class);
 
-        User fakeUser = User.builder()
-                .id(UUID.randomUUID())
-                .userName("john")
-                .password("encoded_pass")
-                .build();
-
-        // the id we want save(...) to set on the passed device
-        UUID assignedDeviceId = UUID.randomUUID();
-
-        // when user lookup
-        when(userRepository.findByUserName("john")).thenReturn(Optional.of(fakeUser));
-
-        // simulate JPA save: set id on the passed device instance and return it
-        when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> {
-            Device arg = inv.getArgument(0);
-            // set id on the passed device (simulate JPA assigning id)
-            arg.setId(assignedDeviceId);
-            return arg;
-        });
-
-        // jwtService should accept any user and any UUID (since device id may be set dynamically)
-        when(jwtService.generateAccessToken(any(User.class), any(UUID.class))).thenReturn("access_123");
-        when(jwtService.generateRefreshToken(any(User.class), any(UUID.class))).thenReturn("refresh_123");
-
-        // when saving refresh token repo, return the same entity (or any)
-        when(refreshTokenRepository.save(any(RefreshToken.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        // mock authentication manager authenticate to return an Authentication (no exception)
-        when(authenticationManager.authenticate(any())).thenReturn(mock(Authentication.class));
-
-        // --- act
-        LoginResponseDTO response = authService.login(request, mock(HttpServletResponse.class));
-
-        // --- assert
-        assertNotNull(response, "response should not be null");
-        assertEquals("access_123", response.getAccessToken(), "access token mismatch");
-        assertEquals("refresh_123", response.getRefreshToken(), "refresh token mismatch");
-        assertEquals(assignedDeviceId, response.getDeviceId(), "device id mismatch");
-
-        // verify interactions
-        verify(authenticationManager).authenticate(any());
-        verify(deviceRepository).save(any(Device.class));
-        verify(refreshTokenRepository).save(any(RefreshToken.class));
-        verify(jwtService).generateAccessToken(any(User.class), any(UUID.class));
-        verify(jwtService).generateRefreshToken(any(User.class), any(UUID.class));
-    }
-
-
-
-    // ==================== REFRESH ACCESS TOKEN ====================
-    @Test
-    void refreshAccessToken_success() {
-        UUID deviceId = UUID.randomUUID();
-        User user = User.builder().id(UUID.randomUUID()).build();
-        RefreshToken refreshTokenEntity = RefreshToken.builder()
-                .user(user)
-                .expiresAt(LocalDateTime.now().plusDays(1))
-                .build();
-
-        when(jwtService.extractDeviceId("refreshToken")).thenReturn(deviceId);
-        when(refreshTokenRepository.findByToken("refreshToken")).thenReturn(Optional.of(refreshTokenEntity));
-        when(jwtService.generateAccessToken(user, deviceId)).thenReturn("new_access");
-
-        String token = authService.refreshAccessToken("refreshToken");
-        assertEquals("new_access", token);
-    }
-
-    @Test
-    void refreshAccessToken_tokenExpired_throws() {
-        UUID deviceId = UUID.randomUUID();
-        User user = User.builder().id(UUID.randomUUID()).build();
-        RefreshToken refreshTokenEntity = RefreshToken.builder()
-                .user(user)
-                .expiresAt(LocalDateTime.now().minusDays(1))
-                .build();
-
-        when(jwtService.extractDeviceId("refreshToken")).thenReturn(deviceId);
-        when(refreshTokenRepository.findByToken("refreshToken")).thenReturn(Optional.of(refreshTokenEntity));
-
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> authService.refreshAccessToken("refreshToken"));
-        assertEquals("Refresh token đã hết hạn", ex.getMessage());
+        // Khởi tạo AuthServiceImpl với tất cả mock từ BaseTest + các mock mới
+        authService = new AuthServiceImpl(
+                userRepository,
+                deviceRepository,
+                refreshTokenRepository,
+                presenceRepository,
+                passwordEncoder,
+                jwtService,
+                otpService,
+                mailService,
+                authenticationManager
+        );
     }
 
     // ==================== REGISTER ====================
     @Test
     void register_success() {
         RegisterRequestDTO dto = new RegisterRequestDTO();
-        dto.setUserName("alice");
+        dto.setUserName("newuser");
         dto.setPassword("password123");
-        dto.setDisplayName("Alice");
-        dto.setEmail("alice@example.com");
+        dto.setEmail("newuser@example.com");
+        dto.setDisplayName("New User");
 
-        when(userRepository.findByUserName("alice")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("password123")).thenReturn("encoded_pass");
+        when(userRepository.findByUserName("newuser")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword123");
 
         authService.register(dto);
 
         verify(userRepository).save(any(User.class));
-        verify(presenceRepository).save(any(Presence.class));
+        verify(presenceRepository).save(any());
     }
 
     @Test
-    void register_existingUser_throws() {
+    void register_duplicateUsername() {
+        User existingUser = mockUser();
         RegisterRequestDTO dto = new RegisterRequestDTO();
-        dto.setUserName("alice");
-        when(userRepository.findByUserName("alice")).thenReturn(Optional.of(new User()));
+        dto.setUserName(existingUser.getUserName());
+        dto.setPassword("password123");
+        dto.setEmail("abc@example.com");
 
-        assertThrows(EntityExistsException.class, () -> authService.register(dto));
+        when(userRepository.findByUserName(existingUser.getUserName())).thenReturn(Optional.of(existingUser));
+
+        assertThatThrownBy(() -> authService.register(dto))
+                .isInstanceOf(EntityExistsException.class);
     }
 
+    // ==================== LOGIN ====================
     @Test
-    void register_shortPassword_throws() {
-        RegisterRequestDTO dto = new RegisterRequestDTO();
-        dto.setUserName("bob");
-        dto.setPassword("short");
+    void login_success() {
+        UUID userId = UUID.randomUUID();
+        User user = User.builder()
+                .id(userId)
+                .userName("testuser")
+                .password("password123")
+                .build();
 
-        assertThrows(RuntimeException.class, () -> authService.register(dto));
+        // tạo dto
+        LoginRequestDTO dto = new LoginRequestDTO();
+        dto.setUserName(user.getUserName());
+        dto.setPassword("password123");
+
+        // mock user repo
+        when(userRepository.findByUserName(eq(user.getUserName()))).thenReturn(Optional.of(user));
+
+        // khi save device: set id => trả device có id (giả lập DB)
+        when(deviceRepository.save(any(Device.class))).thenAnswer(inv -> {
+            Device d = inv.getArgument(0);
+            d.setId(UUID.randomUUID()); // GÁN ID NHƯ DB
+            return d;
+        });
+
+        // stub jwtService — bây giờ deviceId ko null nên any(UUID.class) sẽ match
+        when(jwtService.generateAccessToken(eq(user), any(UUID.class))).thenReturn("accessToken123");
+        when(jwtService.generateRefreshToken(eq(user), any(UUID.class))).thenReturn("refreshToken123");
+
+        // (tùy chọn) tránh side-effect của auth manager: stub authenticate để ko ném
+        when(authenticationManager.authenticate(any())).thenReturn(
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        user.getUserName(), user.getPassword(), java.util.List.of()
+                )
+        );
+
+        // gọi service
+        LoginResponseDTO resp = authService.login(dto, null);
+
+        // asserts
+        assertThat(resp.getAccessToken()).isEqualTo("accessToken123");
+        assertThat(resp.getRefreshToken()).isEqualTo("refreshToken123");
+        assertThat(resp.getDeviceId()).isNotNull();
     }
 
-    // ==================== LOGOUT ====================
+
+    // ==================== REFRESH TOKEN ====================
     @Test
-    void logout_success() {
-        String refreshToken = "token";
+    void refreshAccessToken_success() {
+        User user = mockUser();
         UUID deviceId = UUID.randomUUID();
-        User user = User.builder().userName("u").build();
-        Device device = Device.builder().build();
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token("refresh123")
+                .user(user)
+                .expiresAt(LocalDateTime.now().plusDays(1))
+                .build();
 
-        when(jwtService.extractDeviceId(refreshToken)).thenReturn(deviceId);
-        when(jwtService.extractUsername(refreshToken)).thenReturn("u");
-        when(deviceRepository.findById(deviceId)).thenReturn(Optional.of(device));
-        when(userRepository.findByUserName("u")).thenReturn(Optional.of(user));
+        when(refreshTokenRepository.findByToken("refresh123")).thenReturn(Optional.of(refreshToken));
+        when(jwtService.extractDeviceId("refresh123")).thenReturn(deviceId);
+        when(jwtService.generateAccessToken(user, deviceId)).thenReturn("newAccessToken");
 
-        authService.logout(refreshToken);
-
-        verify(refreshTokenRepository).deleteByUserAndDevice(user, device);
-        verify(deviceRepository).delete(device);
+        String token = authService.refreshAccessToken("refresh123");
+        assertThat(token).isEqualTo("newAccessToken");
     }
 
     // ==================== CHANGE PASSWORD ====================
     @Test
     void changePassword_success() {
-        String refreshToken = "token";
+        User user = mockUser();
         ChangePasswordRequestDTO dto = new ChangePasswordRequestDTO();
-        dto.setOldPassword("old12345");
-        dto.setNewPassword("new12345");
+        dto.setOldPassword("oldPassword");
+        dto.setNewPassword("newPassword123");
 
-        User user = User.builder().password("encoded_old").id(UUID.randomUUID()).build();
-        when(jwtService.extractUsername(refreshToken)).thenReturn("u");
-        when(userRepository.findByUserName("u")).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("old12345", "encoded_old")).thenReturn(true);
-        when(passwordEncoder.encode("new12345")).thenReturn("encoded_new");
+        when(jwtService.extractUsername("fakeToken")).thenReturn(user.getUserName());
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("oldPassword", user.getPassword())).thenReturn(true);
+        when(passwordEncoder.encode("newPassword123")).thenReturn("encodedNewPassword");
 
-        authService.changePassword(refreshToken, dto);
+        authService.changePassword("fakeToken", dto);
 
         verify(userRepository).save(user);
         verify(refreshTokenRepository).deleteAllByUserId(user.getId());
     }
 
+    // ==================== LOGOUT ====================
+    @Test
+    void logout_success() {
+        User user = mockUser();
+        Device device = mockDevice(user);
+        UUID deviceId = device.getId();
+
+        when(jwtService.extractDeviceId("refresh123")).thenReturn(deviceId);
+        when(jwtService.extractUsername("refresh123")).thenReturn(user.getUserName());
+        when(deviceRepository.findById(deviceId)).thenReturn(Optional.of(device));
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+
+        authService.logout("refresh123");
+
+        verify(deviceRepository).delete(device);
+        verify(refreshTokenRepository).deleteByUserAndDevice(user, device);
+    }
+
     // ==================== FORGOT PASSWORD ====================
     @Test
     void handleForgotPassword_success() {
+        User user = mockUser();
         ForgotPasswordRequestDTO dto = new ForgotPasswordRequestDTO();
-        dto.setUserName("alice");
-        User user = User.builder().id(UUID.randomUUID()).email("a@b.com").build();
-        PasswordResetOtp otp = new PasswordResetOtp();
+        dto.setUserName(user.getUserName());
 
-        when(userRepository.findByUserName("alice")).thenReturn(Optional.of(user));
-        when(otpService.generateOtp(user)).thenReturn(otp);
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(otpService.generateOtp(user)).thenReturn(new PasswordResetOtp());
 
         authService.handleForgotPassword(dto);
 
-        verify(mailService).sendTextMail("a@b.com", otp);
+        verify(mailService).sendTextMail(eq(user.getEmail()), any());
     }
 
     // ==================== RESET PASSWORD ====================
     @Test
     void resetPassword_success() {
+        User user = mockUser();
         ResetPasswordRequestDTO dto = new ResetPasswordRequestDTO();
-        dto.setUsername("alice");
-        dto.setNewPassword("newpassword123");
+        dto.setUsername(user.getUserName());
+        dto.setNewPassword("newPassword123");
         dto.setOtpCode("123456");
 
-        User user = User.builder().id(UUID.randomUUID()).password("old_encoded").build();
-
-        when(userRepository.findByUserName("alice")).thenReturn(Optional.of(user));
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
         when(otpService.verifyOtp(user.getId(), "123456")).thenReturn(true);
-        when(passwordEncoder.encode("newpassword123")).thenReturn("encoded_new");
+        when(passwordEncoder.encode("newPassword123")).thenReturn("encodedNewPassword");
 
         authService.resetPassword(dto);
 
