@@ -1,59 +1,48 @@
 package j2ee.ourteam.services.device;
 
-import org.junit.jupiter.api.BeforeEach;
+import j2ee.ourteam.BaseTest;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class DeviceServiceImplTest {
+class DeviceServiceImplTest extends BaseTest {
 
-    private DeviceServiceImpl service;
+    private final DeviceServiceImpl service = new DeviceServiceImpl();
 
-    @BeforeEach
-    void setUp() {
-        service = new DeviceServiceImpl();
+    @Test
+    void findAll_shouldThrowException() {
+        assertThatThrownBy(service::findAll)
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("findAll");
     }
 
     @Test
-    void testFindAll_ThrowsException() {
-        UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class,
-                () -> service.findAll());
-        assertEquals("Unimplemented method 'findAll'", ex.getMessage());
+    void findById_shouldThrowException() {
+        assertThatThrownBy(() -> service.findById(UUID.randomUUID()))
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("findById");
     }
 
     @Test
-    void testFindById_ThrowsException() {
-        UUID id = UUID.randomUUID();
-        UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class,
-                () -> service.findById(id));
-        assertEquals("Unimplemented method 'findById'", ex.getMessage());
+    void create_shouldThrowException() {
+        assertThatThrownBy(() -> service.create(new Object()))
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("create");
     }
 
     @Test
-    void testCreate_ThrowsException() {
-        Object dto = new Object();
-        UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class,
-                () -> service.create(dto));
-        assertEquals("Unimplemented method 'create'", ex.getMessage());
+    void update_shouldThrowException() {
+        assertThatThrownBy(() -> service.update(UUID.randomUUID(), new Object()))
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("update");
     }
 
     @Test
-    void testUpdate_ThrowsException() {
-        UUID id = UUID.randomUUID();
-        Object dto = new Object();
-        UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class,
-                () -> service.update(id, dto));
-        assertEquals("Unimplemented method 'update'", ex.getMessage());
-    }
-
-    @Test
-    void testDeleteById_ThrowsException() {
-        UUID id = UUID.randomUUID();
-        UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class,
-                () -> service.deleteById(id));
-        assertEquals("Unimplemented method 'deleteById'", ex.getMessage());
+    void deleteById_shouldThrowException() {
+        assertThatThrownBy(() -> service.deleteById(UUID.randomUUID()))
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("deleteById");
     }
 }

@@ -1,9 +1,8 @@
 package j2ee.ourteam.services.presence;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import j2ee.ourteam.BaseTest;
 import j2ee.ourteam.models.presence.PresenceResponseDTO;
-import j2ee.ourteam.repositories.ConversationMemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -17,46 +16,52 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class PresenceServiceImplTest {
+class PresenceServiceImplTest extends BaseTest {
 
     private StringRedisTemplate redisTemplate;
     private ValueOperations<String, String> ops;
-    private ConversationMemberRepository conversationMemberRepository;
+
     private PresenceServiceImpl presenceService;
 
     @BeforeEach
     void setUp() {
         redisTemplate = mock(StringRedisTemplate.class);
         ops = mock(ValueOperations.class);
+
         when(redisTemplate.opsForValue()).thenReturn(ops);
 
-        conversationMemberRepository = mock(ConversationMemberRepository.class);
-
+        // conversationMemberRepository đã được @Mock sẵn từ BaseTest
         presenceService = new PresenceServiceImpl(redisTemplate, conversationMemberRepository);
     }
 
     @Test
     void markOnline_shouldSetOnlineWithTTL() {
         String userId = "user1";
+
         presenceService.markOnline(userId);
 
-        verify(ops, times(1)).set("presence:" + userId, "online", PresenceServiceImpl.TTL);
+        verify(ops, times(1))
+                .set("presence:" + userId, "online", PresenceServiceImpl.TTL);
     }
 
     @Test
     void markOffline_shouldSetOfflineWithTTL() {
         String userId = "user1";
+
         presenceService.markOffline(userId);
 
-        verify(ops, times(1)).set("presence:" + userId, "offline", PresenceServiceImpl.TTL);
+        verify(ops, times(1))
+                .set("presence:" + userId, "offline", PresenceServiceImpl.TTL);
     }
 
     @Test
     void refreshTtl_shouldCallExpire() {
         String userId = "user1";
+
         presenceService.refreshTtl(userId);
 
-        verify(redisTemplate, times(1)).expire("presence:" + userId, PresenceServiceImpl.TTL);
+        verify(redisTemplate, times(1))
+                .expire("presence:" + userId, PresenceServiceImpl.TTL);
     }
 
     @Test
@@ -67,6 +72,7 @@ class PresenceServiceImplTest {
 
         when(conversationMemberRepository.findRelatedUserIdsByUserId(currentUser))
                 .thenReturn(List.of(userA, userB));
+
         when(ops.get("presence:" + userA)).thenReturn("online");
         when(ops.get("presence:" + userB)).thenReturn(null);
 
@@ -82,7 +88,7 @@ class PresenceServiceImplTest {
 
     @Test
     void publishPresenceUpdate_shouldSendMessage() throws JsonProcessingException {
-        String userId = "user1";
+        String userId = UUID.randomUUID().toString();
         String status = "online";
 
         presenceService.publishPresenceUpdate(userId, status);
@@ -99,8 +105,8 @@ class PresenceServiceImplTest {
 
     @Test
     void key_shouldReturnCorrectKey() {
-        String userId = "user1";
-        String key = presenceService.key(userId);
-        assertEquals("presence:" + userId, key);
+        String key = presenceService.key("user1");
+
+        assertEquals("presence:user1", key);
     }
 }

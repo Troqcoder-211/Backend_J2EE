@@ -1,5 +1,6 @@
 package j2ee.ourteam.services.mail;
 
+import j2ee.ourteam.BaseTest;
 import j2ee.ourteam.entities.PasswordResetOtp;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,7 +11,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class MailServiceImplTest {
+public class MailServiceImplTest extends BaseTest {
 
     private JavaMailSender mailSender;
     private MailServiceImpl mailService;

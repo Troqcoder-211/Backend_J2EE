@@ -2,6 +2,7 @@ package j2ee.ourteam.services.storage;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Uploader;
+import j2ee.ourteam.BaseTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -14,7 +15,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class CloudinaryServiceImpTest {
+class CloudinaryServiceImpTest extends BaseTest {
 
     @InjectMocks
     private CloudinaryServiceImp cloudinaryService;

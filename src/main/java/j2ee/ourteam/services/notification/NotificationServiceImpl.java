@@ -40,13 +40,6 @@ public class NotificationServiceImpl implements INotificationService {
   @Autowired
   WebSocketController webSocketController;
 
-    public NotificationServiceImpl(NotificationRepository notificationRepository, UserRepository userRepository, DeviceRepository deviceRepository, NotificationMapper notificationMapper) {
-        this.notificationMapper = notificationMapper;
-        this.notificationRepository = notificationRepository;
-        this.userRepository = userRepository;
-        this.deviceRepository = deviceRepository;
-    }
-
     @Override
   @Transactional
   public NotificationDTO create(Object dto) {

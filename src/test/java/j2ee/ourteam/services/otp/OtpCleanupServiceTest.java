@@ -1,5 +1,6 @@
 package j2ee.ourteam.services.otp;
 
+import j2ee.ourteam.BaseTest;
 import j2ee.ourteam.repositories.PasswordResetOtpRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,7 +9,7 @@ import java.time.LocalDateTime;
 
 import static org.mockito.Mockito.*;
 
-class OtpCleanupServiceTest {
+class OtpCleanupServiceTest extends BaseTest {
 
     private PasswordResetOtpRepository otpRepository;
     private OtpCleanupService otpCleanupService;

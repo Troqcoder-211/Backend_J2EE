@@ -2,6 +2,7 @@ package j2ee.ourteam.models.notification;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import j2ee.ourteam.enums.notification.NotificationTypeEnum;
@@ -24,7 +25,7 @@ public class NotificationDTO implements Serializable {
   private NotificationTypeEnum type;
   private String payload;
   private boolean isDelivered;
-  private LocalDate deliveredAt;
+  private LocalDateTime deliveredAt;
   private boolean isRead;
-  private LocalDate createdAt;
+  private LocalDateTime createdAt;
 }

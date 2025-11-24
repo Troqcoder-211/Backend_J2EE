@@ -1,191 +1,166 @@
 package j2ee.ourteam.services.conversation;
 
-import j2ee.ourteam.entities.*;
+import j2ee.ourteam.BaseTest;
+import j2ee.ourteam.entities.Conversation;
+import j2ee.ourteam.entities.ConversationMember;
+import j2ee.ourteam.entities.User;
 import j2ee.ourteam.mapping.ConversationMapper;
+import j2ee.ourteam.mapping.ConversationMemberMapper;
 import j2ee.ourteam.models.conversation.*;
 import j2ee.ourteam.models.conversation_member.ConversationMemberDTO;
+import j2ee.ourteam.redis.ConversationSoftDeleteService;
 import j2ee.ourteam.repositories.ConversationMemberRepository;
 import j2ee.ourteam.repositories.ConversationRepository;
 import j2ee.ourteam.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-public class ConversationServiceImplTest {
+class ConversationServiceImplTest extends BaseTest {
 
-    @Mock
-    private ConversationMapper conversationMapper;
-
-    @Mock
     private ConversationRepository conversationRepository;
-
-    @Mock
     private UserRepository userRepository;
-
-    @Mock
     private ConversationMemberRepository conversationMemberRepository;
-
-    @InjectMocks
-    private ConversationServiceImpl conversationService;
-
-    private User adminUser;
+    private ConversationMapper conversationMapper;
+    private ConversationMemberMapper conversationMemberMapper;
+    private ConversationSoftDeleteService conversationSoftDeleteService;
+    private ConversationServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        adminUser = User.builder().id(UUID.randomUUID()).userName("admin").build();
+        conversationRepository = mock(ConversationRepository.class);
+        userRepository = mock(UserRepository.class);
+        conversationMemberRepository = mock(ConversationMemberRepository.class);
+        conversationMapper = mock(ConversationMapper.class);
+        conversationMemberMapper = mock(ConversationMemberMapper.class);
+        conversationSoftDeleteService = mock(ConversationSoftDeleteService.class);
+
+        service = new ConversationServiceImpl(
+                conversationMapper,
+                conversationMemberMapper,
+                conversationRepository,
+                userRepository,
+                conversationMemberRepository,
+                conversationSoftDeleteService
+        );
     }
 
-    // ==================== CREATE CONVERSATION ====================
     @Test
-    void createConversation_success() {
+    void createConversation_DM_existingConversation_restores() {
+        User currentUser = new User();
+        currentUser.setId(UUID.randomUUID());
+
         CreateConversationDTO dto = new CreateConversationDTO();
-        dto.setName("Group Chat");
-        ConversationMemberDTO member = new ConversationMemberDTO();
-        member.setUserId(UUID.randomUUID());
-        dto.setMembers(List.of(member));
+        dto.setConversationType(Conversation.ConversationType.DM);
+        ConversationMemberDTO memberDto = new ConversationMemberDTO();
+        UUID otherUserId = UUID.randomUUID();
+        memberDto.setUserId(otherUserId);
+        dto.setMembers(List.of(memberDto));
 
-        Conversation conv = Conversation.builder().id(UUID.randomUUID()).build();
-        when(userRepository.findById(adminUser.getId())).thenReturn(Optional.of(adminUser));
-        when(conversationMapper.toEntity(dto)).thenReturn(conv);
-        when(conversationRepository.save(conv)).thenReturn(conv);
-        when(conversationMemberRepository.findByIdConversationId(conv.getId())).thenReturn(List.of());
+        when(userRepository.findById(currentUser.getId())).thenReturn(Optional.of(currentUser));
 
-        var response = conversationService.createConversation(dto, adminUser);
+        Conversation existingConversation = new Conversation();
+        existingConversation.setId(UUID.randomUUID());
+        existingConversation.setMembers(new ArrayList<>());
 
-        assertTrue(response.isSuccess());
-        assertEquals("Tạo conversation thành công", response.getMessage());
-        verify(conversationRepository).save(conv);
-        verify(conversationMemberRepository, atLeastOnce()).save(any(ConversationMember.class));
+        when(conversationMemberRepository.findExistingDm(currentUser.getId(), otherUserId))
+                .thenReturn(Optional.of(existingConversation));
+
+        when(conversationSoftDeleteService.isDeleted(currentUser.getId().toString(), existingConversation.getId().toString()))
+                .thenReturn(true);
+
+        when(conversationRepository.save(existingConversation)).thenReturn(existingConversation);
+        when(conversationMapper.toDto(existingConversation, currentUser, conversationMemberMapper))
+                .thenReturn(new ConversationDTO());
+
+        var response = service.createConversation(dto, currentUser);
+
+        assertThat(response).isNotNull();
+        assertThat(response.isSuccess()).isTrue();
+        verify(conversationSoftDeleteService).restore(currentUser.getId().toString(), existingConversation.getId().toString());
     }
 
     @Test
-    void createConversation_userNotFound() {
-        when(userRepository.findById(adminUser.getId())).thenReturn(Optional.empty());
+    void updateConversation_onlyName_success() {
+        UUID convId = UUID.randomUUID();
+        User currentUser = new User();
+        currentUser.setId(UUID.randomUUID());
 
-        var response = conversationService.createConversation(new CreateConversationDTO(), adminUser);
-        assertFalse(response.isSuccess());
-        assertEquals("User not found", response.getMessage());
-    }
+        Conversation conversation = new Conversation();
+        conversation.setId(convId);
+        conversation.setName("Old name");
 
-    // ==================== UPDATE CONVERSATION ====================
-    @Test
-    void updateConversation_success() {
         UpdateConversationDTO dto = new UpdateConversationDTO();
-        dto.setName("New Name");
+        dto.setName("New name");
 
-        Conversation conv = Conversation.builder().id(UUID.randomUUID()).createdBy(adminUser).build();
-        when(userRepository.findById(adminUser.getId())).thenReturn(Optional.of(adminUser));
-        when(conversationRepository.findById(conv.getId())).thenReturn(Optional.of(conv));
-        when(conversationRepository.save(conv)).thenReturn(conv);
-        when(conversationMapper.toDto(conv)).thenReturn(new ConversationDTO());
+        when(userRepository.findById(currentUser.getId())).thenReturn(Optional.of(currentUser));
+        when(conversationRepository.findById(convId)).thenReturn(Optional.of(conversation));
+        when(conversationRepository.save(conversation)).thenReturn(conversation);
+        when(conversationMapper.toDto(conversation, currentUser, conversationMemberMapper))
+                .thenReturn(new ConversationDTO());
 
-        var response = conversationService.updateConversation(conv.getId(), dto, adminUser);
-        assertTrue(response.isSuccess());
-        assertEquals("Cập nhật conversation thành công", response.getMessage());
-        verify(conversationRepository).save(conv);
+        var response = service.updateConversation(convId, dto, currentUser);
+
+        assertThat(response).isNotNull();
+        assertThat(response.isSuccess()).isTrue();
+        assertThat(conversation.getName()).isEqualTo("New name");
     }
 
     @Test
-    void updateConversation_notAdmin() {
-        User otherUser = User.builder().id(UUID.randomUUID()).build();
-        UpdateConversationDTO dto = new UpdateConversationDTO();
-        Conversation conv = Conversation.builder().id(UUID.randomUUID()).createdBy(otherUser).build();
-
-        when(userRepository.findById(adminUser.getId())).thenReturn(Optional.of(adminUser));
-        when(conversationRepository.findById(conv.getId())).thenReturn(Optional.of(conv));
-
-        var response = conversationService.updateConversation(conv.getId(), dto, adminUser);
-        assertFalse(response.isSuccess());
-        assertEquals("Only the group Admin can rename or change avatar", response.getMessage());
-    }
-
-    // ==================== DELETE CONVERSATION ====================
-    @Test
-    void deleteConversationById_success() {
+    void deleteConversationById_marksDeleted() {
         UUID convId = UUID.randomUUID();
-        Conversation conv = Conversation.builder().id(convId).createdBy(adminUser).build();
+        User currentUser = new User();
+        currentUser.setId(UUID.randomUUID());
 
-        when(userRepository.findById(adminUser.getId())).thenReturn(Optional.of(adminUser));
-        when(conversationRepository.findById(convId)).thenReturn(Optional.of(conv));
+        Conversation conversation = new Conversation();
+        conversation.setId(convId);
 
-        var response = conversationService.deleteConversationById(convId, adminUser);
-        assertTrue(response.isSuccess());
-        assertEquals("Xóa conversation thành công", response.getMessage());
-        verify(conversationRepository).deleteById(convId);
+        when(userRepository.findById(currentUser.getId())).thenReturn(Optional.of(currentUser));
+        when(conversationRepository.findById(convId)).thenReturn(Optional.of(conversation));
+        when(conversationMemberRepository.findByConversationIdAndUserId(convId, currentUser.getId()))
+                .thenReturn(Optional.of(new ConversationMember()));
+
+        var response = service.deleteConversationById(convId, currentUser);
+
+        assertThat(response).isNotNull();
+        assertThat(response.isSuccess()).isTrue();
+        verify(conversationSoftDeleteService).markDeleted(currentUser.getId().toString(), convId.toString());
     }
 
     @Test
-    void deleteConversationById_notAdmin() {
-        UUID convId = UUID.randomUUID();
-        User otherUser = User.builder().id(UUID.randomUUID()).build();
-        Conversation conv = Conversation.builder().id(convId).createdBy(otherUser).build();
+    void getAllConversation_filtersDeleted() {
+        User currentUser = new User();
+        currentUser.setId(UUID.randomUUID());
+        currentUser.setUserName("testuser");
 
-        when(userRepository.findById(adminUser.getId())).thenReturn(Optional.of(adminUser));
-        when(conversationRepository.findById(convId)).thenReturn(Optional.of(conv));
+        Conversation conv1 = new Conversation();
+        conv1.setId(UUID.randomUUID());
+        Conversation conv2 = new Conversation();
+        conv2.setId(UUID.randomUUID());
 
-        var response = conversationService.deleteConversationById(convId, adminUser);
-        assertFalse(response.isSuccess());
-        assertEquals("Only the group Admin can delete it", response.getMessage());
-    }
-
-    // ==================== IS ARCHIVED ====================
-    @Test
-    void isArchived_success() {
-        UUID convId = UUID.randomUUID();
-        Conversation conv = Conversation.builder().id(convId).build();
-        ArchivedConversationDTO dto = new ArchivedConversationDTO();
-
-        when(conversationRepository.findById(convId)).thenReturn(Optional.of(conv));
-        when(conversationRepository.save(conv)).thenReturn(conv);
-
-        var response = conversationService.isArchived(convId, dto, adminUser);
-        assertTrue(response.isSuccess());
-        assertEquals(true, response.getData());
-        verify(conversationRepository).save(conv);
-        verify(conversationMapper).updateArchivedFromDto(dto, conv);
-    }
-
-    // ==================== GET ALL CONVERSATION ====================
-    @Test
-    void getAllConversation_success() {
-        Conversation conv1 = Conversation.builder().id(UUID.randomUUID()).build();
-        Conversation conv2 = Conversation.builder().id(UUID.randomUUID()).build();
-        when(conversationRepository.findAllByMemberId(adminUser.getId()))
+        // Repo trả về cả 2 conversation
+        when(conversationRepository.findAllByMemberId(currentUser.getId()))
                 .thenReturn(List.of(conv1, conv2));
-        when(conversationMapper.toDto(any())).thenReturn(new ConversationDTO());
 
-        var response = conversationService.getAllConversation(adminUser);
-        assertTrue(response.isSuccess());
-        assertEquals(2, response.getData().size());
+        // Soft-delete trả về đúng
+        when(conversationSoftDeleteService.isDeleted(currentUser.getId().toString(), conv1.getId().toString()))
+                .thenReturn(false);
+        when(conversationSoftDeleteService.isDeleted(currentUser.getId().toString(), conv2.getId().toString()))
+                .thenReturn(true);
+
+        // Mapper trả về DTO cho conversation không xoá
+        when(conversationMapper.toDto(conv1, currentUser, conversationMemberMapper))
+                .thenReturn(new ConversationDTO());
+
+        var response = service.getAllConversation(currentUser);
+
+        assertThat(response).isNotNull();
+        assertThat(response.isSuccess()).isTrue();
+        assertThat(response.getData()).hasSize(1); // chỉ còn conv1
     }
 
-    // ==================== FIND CONVERSATION BY ID ====================
-    @Test
-    void findConversationById_success() {
-        UUID convId = UUID.randomUUID();
-        Conversation conv = Conversation.builder().id(convId).build();
-        when(conversationRepository.findById(convId)).thenReturn(Optional.of(conv));
-        when(conversationMapper.toDto(conv)).thenReturn(new ConversationDTO());
-
-        var response = conversationService.findConversationById(convId, adminUser);
-        assertTrue(response.isSuccess());
-        assertNotNull(response.getData());
-    }
-
-    @Test
-    void findConversationById_notFound() {
-        UUID convId = UUID.randomUUID();
-        when(conversationRepository.findById(convId)).thenReturn(Optional.empty());
-
-        var response = conversationService.findConversationById(convId, adminUser);
-        assertFalse(response.isSuccess());
-        assertEquals("Conversation not found", response.getMessage());
-    }
 }

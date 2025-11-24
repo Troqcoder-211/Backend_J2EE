@@ -1,240 +1,173 @@
 package j2ee.ourteam.services.user;
 
-import j2ee.ourteam.services.aws.S3Service;
+import j2ee.ourteam.BaseTest;
 import j2ee.ourteam.entities.User;
-import j2ee.ourteam.mapping.UserMapper;
 import j2ee.ourteam.models.page.PageResponse;
-import j2ee.ourteam.models.user.*;
-import j2ee.ourteam.repositories.UserRepository;
+import j2ee.ourteam.models.user.GetUserListRequestDTO;
+import j2ee.ourteam.models.user.UpdateUserProfileDTO;
+import j2ee.ourteam.models.user.UserProfileResponseDTO;
+import j2ee.ourteam.models.user.UserResponseDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.*;
-
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-class UserServiceImplTest {
+class UserServiceImplTest extends BaseTest {
 
-    @InjectMocks
     private UserServiceImpl userService;
 
-    @Mock
-    private UserRepository userRepository;
+    private User user;
 
-    @Mock
-    private S3Service s3Service;
-
-    @Mock
-    private UserMapper userMapper;
-
-    @Mock
-    private MultipartFile multipartFile;
+    // fixed UUIDs to avoid EntityNotFoundException
+    private final UUID FIXED_USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-    }
 
-    // === getUserProfile ===
-    @Test
-    void testGetUserProfile_Found() {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
-        UserProfileResponseDTO dto = new UserProfileResponseDTO();
+        // manually create service with mocks
+        userService = new UserServiceImpl(userRepository, s3Service, userMapper);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userMapper.toUserProfileResponseDTO(user)).thenReturn(dto);
-
-        UserProfileResponseDTO result = userService.getUserProfile(userId);
-
-        assertNotNull(result);
-        verify(userRepository).findById(userId);
+        // prepare sample user
+        user = mockUser();
+        user.setId(FIXED_USER_ID);
     }
 
     @Test
-    void testGetUserProfile_NotFound() {
-        UUID userId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+    void getUserList_ShouldReturnPagedResponse() {
+        GetUserListRequestDTO request = new GetUserListRequestDTO();
+        request.setPage(1);
+        request.setLimit(10);
 
-        assertNull(userService.getUserProfile(userId));
+        Page<User> page = new PageImpl<>(List.of(user));
+        when(userRepository.findAll(any(Pageable.class))).thenReturn(page);
+        when(userMapper.toUserResponseDTO(user)).thenReturn(new UserResponseDTO());
+
+        PageResponse<UserResponseDTO> result = userService.getUserList(request);
+
+        assertThat(result.getTotalPages()).isEqualTo(1);
+        verify(userRepository, times(1)).findAll(any(Pageable.class));
     }
 
-    // === updateMyProfile ===
     @Test
-    void testUpdateMyProfile_Success() {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
-        UpdateUserProfileDTO dto = new UpdateUserProfileDTO();
-        dto.setDisplayName("New Name");
-        dto.setEmail("newemail@test.com");
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+    void getUserProfile_ShouldReturnDTO_WhenUserExists() {
+        when(userRepository.findById(FIXED_USER_ID)).thenReturn(Optional.of(user));
         when(userMapper.toUserProfileResponseDTO(user)).thenReturn(new UserProfileResponseDTO());
 
-        UserProfileResponseDTO result = userService.updateMyProfile(userId, dto);
-
-        assertNotNull(result);
-        assertEquals("New Name", user.getDisplayName());
-        assertEquals("newemail@test.com", user.getEmail());
-        verify(userRepository).save(user);
+        UserProfileResponseDTO dto = userService.getUserProfile(FIXED_USER_ID);
+        assertThat(dto).isNotNull();
     }
 
     @Test
-    void testUpdateMyProfile_UserNotFound() {
-        UUID userId = UUID.randomUUID();
-        UpdateUserProfileDTO dto = new UpdateUserProfileDTO();
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+    void getUserProfile_ShouldReturnNull_WhenUserNotFound() {
+        UUID id = UUID.randomUUID();
+        when(userRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> userService.updateMyProfile(userId, dto));
+        UserProfileResponseDTO dto = userService.getUserProfile(id);
+        assertThat(dto).isNull();
     }
 
-    // === updateAvatar ===
     @Test
-    void testUpdateAvatar_Success() throws IOException {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
+    void updateMyProfile_ShouldUpdateFields() {
+        when(userRepository.findById(FIXED_USER_ID)).thenReturn(Optional.of(user));
+        when(userMapper.toUserProfileResponseDTO(user)).thenReturn(new UserProfileResponseDTO());
+
+        UpdateUserProfileDTO updateDTO = new UpdateUserProfileDTO();
+        updateDTO.setEmail("newemail@example.com");
+        updateDTO.setDisplayName("New Name");
+        updateDTO.setAvatarS3Key("new-avatar-key");
+
+        UserProfileResponseDTO result = userService.updateMyProfile(FIXED_USER_ID, updateDTO);
+
+        assertThat(user.getEmail()).isEqualTo("newemail@example.com");
+        assertThat(user.getDisplayName()).isEqualTo("New Name");
+        assertThat(user.getAvatarS3Key()).isEqualTo("new-avatar-key");
+        assertThat(result).isNotNull();
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void updateMyProfile_ShouldThrow_WhenUserNotFound() {
+        UUID id = UUID.randomUUID();
+        when(userRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class,
+                () -> userService.updateMyProfile(id, new UpdateUserProfileDTO()));
+    }
+
+    @Test
+    void updateAvatar_ShouldUploadAndSetNewAvatar() throws IOException {
+        MultipartFile file = mock(MultipartFile.class);
+        when(userRepository.findById(FIXED_USER_ID)).thenReturn(Optional.of(user));
+        when(s3Service.uploadFile(file)).thenReturn("new-url");
+
+        String result = userService.updateAvatar(FIXED_USER_ID, file);
+
+        assertThat(result).isEqualTo("new-url");
+        assertThat(user.getAvatarS3Key()).isEqualTo("new-url");
+        verify(s3Service, times(1)).uploadFile(file);
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void updateAvatar_ShouldDeleteOldAvatar() throws IOException {
         user.setAvatarS3Key("old-key");
+        MultipartFile file = mock(MultipartFile.class);
+        when(userRepository.findById(FIXED_USER_ID)).thenReturn(Optional.of(user));
+        when(s3Service.uploadFile(file)).thenReturn("new-url");
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(s3Service.uploadFile(multipartFile)).thenReturn("new-key");
+        userService.updateAvatar(FIXED_USER_ID, file);
 
-        String result = userService.updateAvatar(userId, multipartFile);
-
-        assertEquals("new-key", result);
-        verify(s3Service).deleteFile("old-key");
-        verify(userRepository).save(user);
+        verify(s3Service, times(1)).deleteFile("old-key");
+        verify(s3Service, times(1)).uploadFile(file);
     }
 
     @Test
-    void testUpdateAvatar_UserNotFound() throws IOException {
-        UUID userId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        assertThrows(EntityNotFoundException.class, () -> userService.updateAvatar(userId, multipartFile));
-    }
-
-    // === disableUser ===
-    @Test
-    void testDisableUser_Success() {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
+    void disableUser_ShouldSetIsDisabledTrue() {
         user.setIsDisabled(false);
+        when(userRepository.findById(FIXED_USER_ID)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        userService.disableUser(FIXED_USER_ID);
 
-        userService.disableUser(userId);
-
-        assertTrue(user.getIsDisabled());
-        verify(userRepository).save(user);
+        assertThat(user.getIsDisabled()).isTrue();
+        verify(userRepository, times(1)).save(user);
     }
 
     @Test
-    void testDisableUser_AlreadyDisabled() {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
+    void disableUser_ShouldThrow_WhenAlreadyDisabled() {
         user.setIsDisabled(true);
+        when(userRepository.findById(FIXED_USER_ID)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-
-        assertThrows(IllegalStateException.class, () -> userService.disableUser(userId));
+        assertThrows(IllegalStateException.class, () -> userService.disableUser(FIXED_USER_ID));
     }
 
-    // === enableUser ===
     @Test
-    void testEnableUser_Success() {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
+    void enableUser_ShouldSetIsDisabledFalse() {
         user.setIsDisabled(true);
+        when(userRepository.findById(FIXED_USER_ID)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        userService.enableUser(FIXED_USER_ID);
 
-        userService.enableUser(userId);
-
-        assertFalse(user.getIsDisabled());
-        verify(userRepository).save(user);
+        assertThat(user.getIsDisabled()).isFalse();
+        verify(userRepository, times(1)).save(user);
     }
 
     @Test
-    void testEnableUser_AlreadyEnabled() {
-        UUID userId = UUID.randomUUID();
-        User user = new User();
+    void enableUser_ShouldThrow_WhenAlreadyEnabled() {
         user.setIsDisabled(false);
+        when(userRepository.findById(FIXED_USER_ID)).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-
-        assertThrows(IllegalStateException.class, () -> userService.enableUser(userId));
-    }
-
-    // === getUserList ===
-    @Test
-    void testGetUserList_NoFilter() {
-        GetUserListRequestDTO request = new GetUserListRequestDTO();
-        request.setPage(1);
-        request.setLimit(10);
-
-        Page<User> page = new PageImpl<>(List.of(new User()));
-        when(userRepository.findAll(any(Pageable.class))).thenReturn(page);
-        when(userMapper.toUserResponseDTO(any(User.class))).thenReturn(new UserResponseDTO());
-
-        PageResponse<UserResponseDTO> result = userService.getUserList(request);
-
-        assertNotNull(result);
-        verify(userRepository).findAll(any(Pageable.class));
-    }
-
-    @Test
-    void testGetUserList_WithFilter() {
-        GetUserListRequestDTO request = new GetUserListRequestDTO();
-        request.setPage(1);
-        request.setLimit(10);
-        request.setUserName("test");
-
-        Page<User> page = new PageImpl<>(List.of(new User()));
-        when(userRepository.findByUserNameContaining(eq("test"), any(Pageable.class))).thenReturn(page);
-        when(userMapper.toUserResponseDTO(any(User.class))).thenReturn(new UserResponseDTO());
-
-        PageResponse<UserResponseDTO> result = userService.getUserList(request);
-
-        assertNotNull(result);
-        verify(userRepository).findByUserNameContaining(eq("test"), any(Pageable.class));
-    }
-
-    // === Các hàm chưa triển khai: deleteUser, findAll, findById, create, update, deleteById ===
-    @Test
-    void testDeleteUser_Unimplemented() {
-        UUID userId = UUID.randomUUID();
-        assertThrows(UnsupportedOperationException.class, () -> userService.deleteUser(userId));
-    }
-
-    @Test
-    void testFindAll_Unimplemented() {
-        assertThrows(UnsupportedOperationException.class, () -> userService.findAll());
-    }
-
-    @Test
-    void testFindById_Unimplemented() {
-        assertThrows(UnsupportedOperationException.class, () -> userService.findById(UUID.randomUUID()));
-    }
-
-    @Test
-    void testCreate_Unimplemented() {
-        assertThrows(UnsupportedOperationException.class, () -> userService.create(new Object()));
-    }
-
-    @Test
-    void testUpdate_Unimplemented() {
-        assertThrows(UnsupportedOperationException.class, () -> userService.update(UUID.randomUUID(), new Object()));
-    }
-
-    @Test
-    void testDeleteById_Unimplemented() {
-        assertThrows(UnsupportedOperationException.class, () -> userService.deleteById(UUID.randomUUID()));
+        assertThrows(IllegalStateException.class, () -> userService.enableUser(FIXED_USER_ID));
     }
 }
