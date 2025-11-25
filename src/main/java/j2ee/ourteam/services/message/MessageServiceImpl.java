@@ -8,6 +8,8 @@ import j2ee.ourteam.entities.*;
 import j2ee.ourteam.mapping.AttachmentMapper;
 import j2ee.ourteam.models.messagereaction.MessageReactionDTO;
 import j2ee.ourteam.repositories.*;
+import org.hibernate.Hibernate;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,7 +54,76 @@ public class MessageServiceImpl implements IMessageService {
   private static final String ERROR_EMPTY_CONTENT = "Content cannot be empty for text messages";
   private static final String ERROR_EMPTY_ATTACHMENTS = "Attachments are required for non-text messages";
 
+  // Class MessageServiceImple.java (hoặc tương tự)
+
   @Override
+  @Transactional(readOnly = true)
+  public Page<MessageDTO> findAllPaged(MessageFilter filter) {
+    filter.normalize(); // chuẩn hóa sortOrder, sortBy, page, limit
+
+    try {
+      // === Chuẩn hóa Sort Order ===
+      Sort.Direction direction;
+      try {
+        direction = Sort.Direction.fromString(filter.getSortOrder());
+      } catch (Exception ex) {
+        direction = Sort.Direction.DESC; // fallback an toàn
+      }
+
+      // === Validate sortBy có tồn tại trong entity không ===
+      if (!isValidSortField(filter.getSortBy())) {
+        throw new IllegalArgumentException("Invalid sortBy field: " + filter.getSortBy());
+      }
+
+      Pageable pageable = PageRequest.of(
+          Math.max(filter.getPage() - 1, 0),
+          filter.getLimit(),
+          Sort.by(direction, filter.getSortBy()));
+
+      Page<Message> page = messageRepository.findAll(
+          MessageSpecification.filter(filter),
+          pageable);
+
+      return page.map(message -> {
+        Set<Attachment> attachments = message.getAttachments();
+        Set<AttachmentDTO> attachmentDTOs = attachments.stream()
+            .map(attachmentMapper::toDto).collect(Collectors.toSet());
+
+        // 💡 Map ReplyTo (Sử dụng MessageMapper để map đệ quy Message -> MessageDTO)
+        MessageDTO replyToDto = (message.getReplyTo() != null)
+            ? messageMapper.toDto(message.getReplyTo())
+            : null;
+
+        return MessageDTO.builder()
+            .id(message.getId())
+            .content(message.getContent())
+            .type(messageMapper.toEnum(message.getType()))
+            .createdAt(message.getCreatedAt())
+            .editedAt(message.getEditedAt())
+            .isDeleted(message.getIsDeleted())
+
+            .senderId(message.getSender() != null ? message.getSender().getId() : null)
+            .conversationId(message.getConversation() != null ? message.getConversation().getId() : null)
+
+            .attachments(attachmentDTOs)
+            .replyTo(replyToDto)
+            .build();
+      });
+
+    } catch (Exception e) {
+      // Giữ nguyên stack trace cực kỳ quan trọng
+      throw new RuntimeException("Failed to findAllPaged: " + e.getMessage(), e);
+    }
+  }
+
+  // Hàm kiểm tra sortBy hợp lệ
+  private boolean isValidSortField(String field) {
+    return Arrays.stream(Message.class.getDeclaredFields())
+        .anyMatch(f -> f.getName().equals(field));
+  }
+
+  @Override
+  @Transactional
   public MessageDTO create(Object dto) {
     if (!(dto instanceof CreateMessageDTO createDto)) {
       throw new IllegalArgumentException("Invalid DTO type for create");

@@ -61,6 +61,6 @@ public class ConversationMember {
   private LocalDateTime lastReadAt;
 
   public enum Role {
-    MEMBER, ADMIN
+    MEMBER, ADMIN, OWNER
   }
 }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,7 +21,7 @@ class ChatMemoryTest extends BaseTest {
 
     @Test
     void getMessages_newConversation_returnsEmptyList() {
-        String conversationId = "conv1";
+        UUID conversationId = UUID.fromString("6b7c8d9e-1234-4a1b-9c2d-3e4f5a6b7c8d");
 
         List<Map<String, String>> messages = chatMemory.getMessages(conversationId);
 
@@ -30,7 +31,7 @@ class ChatMemoryTest extends BaseTest {
 
     @Test
     void addMessage_and_getMessages_returnsCorrectly() {
-        String conversationId = "conv1";
+        UUID conversationId = UUID.fromString("6b7c8d9e-1234-4a1b-9c2d-3e4f5a6b7c8d");
 
         // Add message from user
         chatMemory.addMessage(conversationId, "user", "Hello bot!");
@@ -53,7 +54,7 @@ class ChatMemoryTest extends BaseTest {
 
     @Test
     void getMessages_sameConversation_returnsSameList() {
-        String conversationId = "conv1";
+        UUID conversationId = UUID.fromString("6b7c8d9e-1234-4a1b-9c2d-3e4f5a6b7c8d");
 
         chatMemory.addMessage(conversationId, "user", "Message 1");
         chatMemory.addMessage(conversationId, "user", "Message 2");
@@ -67,8 +68,8 @@ class ChatMemoryTest extends BaseTest {
 
     @Test
     void getMessages_differentConversations_areIndependent() {
-        String conv1 = "conv1";
-        String conv2 = "conv2";
+        UUID conv1 = UUID.fromString("6b7c8d9e-1234-4a1b-9c2d-3e4f5a6b7c8d");
+        UUID conv2 = UUID.fromString("7c8d9e0f-2345-4b2c-ad3e-4f5a6b7c8d9e");
 
         chatMemory.addMessage(conv1, "user", "Message conv1");
         chatMemory.addMessage(conv2, "user", "Message conv2");
