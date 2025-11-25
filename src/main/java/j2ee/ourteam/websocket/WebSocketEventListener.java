@@ -8,6 +8,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
@@ -30,6 +31,7 @@ public class WebSocketEventListener {
 
 
     @EventListener
+    @Transactional
     public void handleSessionConnected(SessionConnectEvent event) throws JsonProcessingException {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
         String userId = (String) sha.getSessionAttributes().get("userId");
@@ -43,6 +45,7 @@ public class WebSocketEventListener {
 
 
     @EventListener
+    @Transactional
     public void handleSessionDisconnect(SessionDisconnectEvent event) throws JsonProcessingException {
         StompHeaderAccessor sha = StompHeaderAccessor.wrap(event.getMessage());
         String userId = (String) sha.getSessionAttributes().get("userId");

@@ -1,25 +1,40 @@
 package j2ee.ourteam.controllers;
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import j2ee.ourteam.entities.Conversation;
 import j2ee.ourteam.models.bot.ChatRequest;
 import j2ee.ourteam.models.bot.ChatResponse;
-import j2ee.ourteam.services.bot.ChatbotService;
+import j2ee.ourteam.services.bot.AiChatService;
+import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("ai")
+@RequestMapping("/ai")
 @AllArgsConstructor
 public class AiController {
-  private final ChatbotService chatbotService;
 
-  @PostMapping
-  public ResponseEntity<ChatResponse> chatWithAI(@RequestBody ChatRequest request) {
-    ChatResponse response = chatbotService.handleMessage(request);
-    return ResponseEntity.ok(response);
-  }
+    private final AiChatService aiChatService;
+
+    @PostMapping("/chat")
+    public ResponseEntity<ChatResponse> chat(@RequestBody ChatRequest request) {
+        return ResponseEntity.ok(aiChatService.chat(request));
+    }
+
+    @PostMapping("/conversation")
+    public Map<String, Object> getOrCreateConversation(@RequestBody Map<String, String> payload) {
+        String userIdStr = payload.get("userId");
+        if (userIdStr == null) throw new RuntimeException("userId is required");
+
+        UUID userId = UUID.fromString(userIdStr);
+        Conversation conversation = aiChatService.getOrCreateAIConversation(userId);
+
+        return Map.of(
+                "id", conversation.getId(),
+                "name", conversation.getName()
+        );
+    }
+
 }

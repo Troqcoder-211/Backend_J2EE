@@ -1,6 +1,7 @@
 package j2ee.ourteam.repositories;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,9 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
         WHERE cm.user.id = :userId
     """)
     List<Conversation> findAllByMemberId(UUID userId);
+
+    Optional<Conversation> findByCreatedByIdAndConversationType(UUID createdById, Conversation.ConversationType conversationType);
+
+
+    List<Conversation> findAllByCreatedByIdAndConversationType(UUID createdById, Conversation.ConversationType type);
 }

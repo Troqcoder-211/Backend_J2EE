@@ -79,7 +79,6 @@ public class MessageServiceImpl implements IMessageService {
           filter.getLimit(),
           Sort.by(direction, filter.getSortBy()));
 
-      // === 🚀 SỬ DỤNG PHƯƠNG THỨC JOIN FETCH TÙY CHỈNH ===
       Page<Message> page = messageRepository.findAll(
           MessageSpecification.filter(filter),
           pageable);
@@ -181,7 +180,7 @@ public class MessageServiceImpl implements IMessageService {
     }
 
     // Push websocket
-    webSocketController.pushMessage(result);
+    webSocketController.sendMessage(result);
 
     return result;
   }
@@ -240,7 +239,7 @@ public class MessageServiceImpl implements IMessageService {
     }
 
     // Push websocket
-    webSocketController.pushMessage(result);
+    webSocketController.sendMessage(result);
 
     return result;
   }

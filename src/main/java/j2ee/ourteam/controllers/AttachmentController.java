@@ -2,7 +2,13 @@ package j2ee.ourteam.controllers;
 
 import java.util.UUID;
 
+import j2ee.ourteam.models.message.MessageDTO;
+import j2ee.ourteam.models.page.PageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,5 +64,19 @@ public class AttachmentController {
     attachmentService.deleteAttachment(id);
     return ResponseEntity.noContent().build();
   }
+
+    @GetMapping("/conversations/{conversationId}/attachments")
+    public  ResponseEntity<PageResponse<AttachmentDTO>>  getAttachments(
+            @PathVariable UUID conversationId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        Pageable pageable = PageRequest.of(page -1, limit, Sort.by( Sort.Direction.DESC,"createdAt"));
+
+        Page<AttachmentDTO> pageResponse =  attachmentService.getAttachmentsByConversation(conversationId, pageable);
+
+        return ResponseEntity.ok(PageResponse.from(pageResponse));
+    }
+
 
 }

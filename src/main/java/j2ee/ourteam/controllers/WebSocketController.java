@@ -31,7 +31,9 @@ public class WebSocketController {
     messagingTemplate.convertAndSend("/queue/notifications/" + dto.getUserId(), dto);
   }
 
-  public void pushMessage(MessageDTO dto) {
-    messagingTemplate.convertAndSend("/topic/notications/" + dto.getConversationId(), dto);
-  }
+    public void pushMessage(MessageDTO dto) {
+        // Trùng với kênh mà client subscribe
+        messagingTemplate.convertAndSend("/topic/conversations/" + dto.getConversationId(), dto);
+    }
+
 }

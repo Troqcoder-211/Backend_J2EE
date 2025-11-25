@@ -1,5 +1,6 @@
 package j2ee.ourteam.repositories;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,7 +18,8 @@ public interface MessageRepository extends JpaRepository<Message, UUID>, JpaSpec
 
     Optional<Message> findTopByConversationIdOrderByCreatedAtDesc(UUID conversationId);
 
-    // Giữ nguyên EntityGraph cho phương thức mặc định nếu bạn muốn:
+    List<Message> findByConversationIdOrderByCreatedAtAsc(UUID conversationId);
+
     @Override
     @EntityGraph(attributePaths = { "attachments", "sender", "replyTo" })
     Page<Message> findAll(Specification<Message> spec, Pageable pageable);
