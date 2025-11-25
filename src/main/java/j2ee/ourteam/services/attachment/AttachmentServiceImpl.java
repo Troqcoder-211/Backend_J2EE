@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 // import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -99,6 +101,18 @@ public class AttachmentServiceImpl implements IAttachmentService {
       throw new RuntimeException("Failed to download file", e);
     }
   }
+
+    @Override
+    public Page<AttachmentDTO> getAttachmentsByConversation(UUID conversationId, Pageable pageable) {
+        // Kiểm tra conversation tồn tại
+        conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
+
+        Page<Attachment> page = attachmentRepository.findByConversationId(conversationId, pageable);
+
+        // Map sang DTO
+        return page.map(attachmentMapper::toDto);
+    }
 
   @Override
   public void deleteAttachment(UUID id) {

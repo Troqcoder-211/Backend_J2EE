@@ -34,8 +34,4 @@ public class CreateMessageDTO {
 
   @Size(max = 10, message = "You can attach up to 10 files per message")
   private List<@ValidUUID UUID> attachmentIds;
-
-    public CreateMessageDTO() {
-
-    }
 }

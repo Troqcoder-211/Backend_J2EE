@@ -1,10 +1,12 @@
 package j2ee.ourteam.models.message;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import j2ee.ourteam.enums.message.MessageTypeEnum;
+import j2ee.ourteam.models.attachment.AttachmentDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,5 +27,5 @@ public class MessageDTO {
   private UUID conversationId;
   private MessageDTO replyTo;
 
-  private Set<UUID> attachmentIds;
+  private Set<AttachmentDTO> attachments = new HashSet<>();;
 }

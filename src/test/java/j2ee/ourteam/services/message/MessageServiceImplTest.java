@@ -1,14 +1,17 @@
 package j2ee.ourteam.services.message;
 
 import j2ee.ourteam.BaseTest;
+import j2ee.ourteam.controllers.WebSocketController;
 import j2ee.ourteam.entities.*;
 import j2ee.ourteam.enums.message.MessageTypeEnum;
+import j2ee.ourteam.mapping.AttachmentMapper;
+import j2ee.ourteam.mapping.MessageMapper;
 import j2ee.ourteam.models.message.*;
 import j2ee.ourteam.models.messagereaction.CreateMessageReactionDTO;
-import j2ee.ourteam.models.messageread.MessageReadDTO;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.data.domain.*;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -19,14 +22,36 @@ import static org.mockito.Mockito.*;
 
 class MessageServiceImplTest extends BaseTest {
 
+    @Mock
+    private MessageMapper messageMapper;
+
+    @Mock
+    private AttachmentMapper attachmentMapper;
+
+    @Mock
+    private WebSocketController webSocketController;
+
     private MessageServiceImpl service;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        service = new MessageServiceImpl(
+                messageRepository,
+                messageReactionRepository,
+                messageReadRepository,
+                conversationRepository,
+                conversationMemberRepository,
+                attachmentRepository,
+                userRepository,
+                messageMapper,
+                attachmentMapper, // <-- thêm tham số mới
+                webSocketController
+        );
+    }
 
     @Test
     void create_shouldSaveTextMessage() {
-        service = new MessageServiceImpl(messageRepository, messageReactionRepository,
-                messageReadRepository, conversationRepository, conversationMemberRepository,
-                attachmentRepository, userRepository, messageMapper, webSocketController);
-
         User sender = mockUser();
         Conversation conversation = mockConversation(List.of());
         CreateMessageDTO dto = mockCreateMessageDTO(conversation.getId(), sender.getId());
@@ -51,10 +76,6 @@ class MessageServiceImplTest extends BaseTest {
 
     @Test
     void create_shouldThrowIfContentEmpty() {
-        service = new MessageServiceImpl(messageRepository, messageReactionRepository,
-                messageReadRepository, conversationRepository, conversationMemberRepository,
-                attachmentRepository, userRepository, messageMapper, webSocketController);
-
         CreateMessageDTO dto = mockCreateMessageDTO(randomUUID(), randomUUID());
         dto.setContent(" ");
         dto.setMessageType(MessageTypeEnum.TEXT);
@@ -64,14 +85,18 @@ class MessageServiceImplTest extends BaseTest {
 
     @Test
     void reply_shouldSaveReplyMessage() {
-        service = new MessageServiceImpl(messageRepository, messageReactionRepository,
-                messageReadRepository, conversationRepository, conversationMemberRepository,
-                attachmentRepository, userRepository, messageMapper, webSocketController);
-
         User sender = mockUser();
         Conversation conv = mockConversation(List.of());
         Message original = mockMessage(sender, conv);
-        CreateReplyMessageDTO dto = new CreateReplyMessageDTO(conv.getId(), sender.getId(), "Reply", original.getId());
+
+        CreateReplyMessageDTO dto = new CreateReplyMessageDTO(
+                conv.getId(),
+                sender.getId(),
+                "Reply",
+                original.getId(),
+                List.of(),              // thêm danh sách người nhận rỗng
+                MessageTypeEnum.TEXT    // thêm type
+        );
 
         Message reply = mockMessage(sender, conv);
         MessageDTO replyDTO = new MessageDTO();
@@ -90,13 +115,8 @@ class MessageServiceImplTest extends BaseTest {
         verify(webSocketController).pushMessage(replyDTO);
     }
 
-
     @Test
     void update_shouldUpdateMessage() {
-        service = new MessageServiceImpl(messageRepository, messageReactionRepository,
-                messageReadRepository, conversationRepository, conversationMemberRepository,
-                attachmentRepository, userRepository, messageMapper, webSocketController);
-
         Message message = mockMessage(mockUser(), mockConversation(List.of()));
         UpdateMessageDTO dto = new UpdateMessageDTO("Updated content", LocalDateTime.now());
         MessageDTO dtoResult = new MessageDTO();
@@ -114,10 +134,6 @@ class MessageServiceImplTest extends BaseTest {
 
     @Test
     void softDelete_shouldMarkMessageDeleted() {
-        service = new MessageServiceImpl(messageRepository, messageReactionRepository,
-                messageReadRepository, conversationRepository, conversationMemberRepository,
-                attachmentRepository, userRepository, messageMapper, webSocketController);
-
         Message message = mockMessage(mockUser(), mockConversation(List.of()));
         message.setIsDeleted(false);
 
@@ -136,12 +152,7 @@ class MessageServiceImplTest extends BaseTest {
 
     @Test
     void deleteById_shouldCallRepositoryDelete() {
-        service = new MessageServiceImpl(messageRepository, messageReactionRepository,
-                messageReadRepository, conversationRepository, conversationMemberRepository,
-                attachmentRepository, userRepository, messageMapper, webSocketController);
-
         Message message = mockMessage(mockUser(), mockConversation(List.of()));
-
         when(messageRepository.findById(message.getId())).thenReturn(Optional.of(message));
 
         service.deleteById(message.getId());
@@ -151,10 +162,6 @@ class MessageServiceImplTest extends BaseTest {
 
     @Test
     void findById_shouldReturnMessageDTO() {
-        service = new MessageServiceImpl(messageRepository, messageReactionRepository,
-                messageReadRepository, conversationRepository, conversationMemberRepository,
-                attachmentRepository, userRepository, messageMapper, webSocketController);
-
         Message message = mockMessage(mockUser(), mockConversation(List.of()));
         MessageDTO dto = new MessageDTO();
         dto.setId(message.getId());
@@ -170,10 +177,6 @@ class MessageServiceImplTest extends BaseTest {
 
     @Test
     void findAll_shouldReturnList() {
-        service = new MessageServiceImpl(messageRepository, messageReactionRepository,
-                messageReadRepository, conversationRepository, conversationMemberRepository,
-                attachmentRepository, userRepository, messageMapper, webSocketController);
-
         Message message = mockMessage(mockUser(), mockConversation(List.of()));
         MessageDTO dto = new MessageDTO();
         dto.setId(message.getId());
@@ -189,10 +192,6 @@ class MessageServiceImplTest extends BaseTest {
 
     @Test
     void addReaction_shouldSaveReaction() {
-        service = new MessageServiceImpl(messageRepository, messageReactionRepository,
-                messageReadRepository, conversationRepository, conversationMemberRepository,
-                attachmentRepository, userRepository, messageMapper, webSocketController);
-
         Message message = mockMessage(mockUser(), mockConversation(List.of()));
         User user = mockUser();
         CreateMessageReactionDTO dto = new CreateMessageReactionDTO();
@@ -212,12 +211,8 @@ class MessageServiceImplTest extends BaseTest {
 
     @Test
     void deleteReaction_shouldDeleteReaction() {
-        service = new MessageServiceImpl(messageRepository, messageReactionRepository,
-                messageReadRepository, conversationRepository, conversationMemberRepository,
-                attachmentRepository, userRepository, messageMapper, webSocketController);
-
-        UUID messageId = randomUUID();
-        UUID userId = randomUUID();
+        UUID messageId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         String emoji = "👍";
         MessageReactionId key = new MessageReactionId(messageId, userId, emoji);
 
@@ -227,5 +222,4 @@ class MessageServiceImplTest extends BaseTest {
 
         verify(messageReactionRepository).deleteById(key);
     }
-
 }

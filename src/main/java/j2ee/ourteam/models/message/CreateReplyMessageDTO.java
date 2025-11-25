@@ -1,18 +1,17 @@
 package j2ee.ourteam.models.message;
 
+import java.util.List;
 import java.util.UUID;
 
+import j2ee.ourteam.enums.message.MessageTypeEnum;
+import j2ee.ourteam.validators.ValidUUID;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-/**
- * DTO used by frontend to send a reply message.
- * Contains conversationId, senderId, content and the id of the message being
- * replied to.
- */
 @Data
 @AllArgsConstructor
 @Builder
@@ -30,4 +29,9 @@ public class CreateReplyMessageDTO {
   @NotNull(message = "ReplyTo message id cannot be null")
   private UUID replyToMessageId;
 
+  @Size(max = 10, message = "You can attach up to 10 files per message")
+  private List<@ValidUUID UUID> attachmentIds;
+
+  @Builder.Default
+  private MessageTypeEnum messageType = MessageTypeEnum.TEXT;
 }

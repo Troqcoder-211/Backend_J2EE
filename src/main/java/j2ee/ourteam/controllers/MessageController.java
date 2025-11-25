@@ -15,6 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,6 +46,8 @@ public class MessageController {
   @Autowired
   private final IMessageService messageService;
 
+  @MessageMapping("/sendMessage")
+  @SendTo("/topic/notification")
   @PostMapping
   public ResponseEntity<MessageDTO> sendMessage(@RequestBody @Valid CreateMessageDTO messageDTO) {
     return ResponseEntity.ok(messageService.create(messageDTO));

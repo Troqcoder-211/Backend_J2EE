@@ -19,6 +19,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name = "users")
@@ -26,9 +27,11 @@ import lombok.Data;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
+  @EqualsAndHashCode.Include
   private UUID id;
 
   @Column(name = "username", nullable = false, unique = true)
@@ -88,7 +91,7 @@ public class User {
   private List<Notification> notifications;
 
   @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Presence presence;
+  private Presence presence; // Exclude from equals/hashCode (implicitly, since not @Include)
 
   @PrePersist
   protected void onCreate() {
@@ -103,11 +106,11 @@ public class User {
     this.updatedAt = LocalDateTime.now();
   }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +  // Chỉ in ID hoặc field đơn giản
-                ", username='" + userName + '\'' +
-                '}';  // Không in createdConversations hoặc các list lazy
-    }
+  @Override
+  public String toString() {
+    return "User{" +
+        "id=" + id + // Chỉ in ID hoặc field đơn giản
+        ", username='" + userName + '\'' +
+        '}'; // Không in createdConversations hoặc các list lazy
+  }
 }

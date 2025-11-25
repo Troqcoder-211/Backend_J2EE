@@ -67,6 +67,7 @@ public class Conversation {
     this.createdAt = LocalDateTime.now();
   }
 
+
   public enum ConversationType {
     DM,
     GROUP,
