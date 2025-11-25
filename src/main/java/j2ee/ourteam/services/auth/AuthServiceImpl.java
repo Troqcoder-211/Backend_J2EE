@@ -51,13 +51,18 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     public LoginResponseDTO login(LoginRequestDTO request, HttpServletResponse response) {
+        var user = userRepository.findByUserName(request.getUserName())
+                .orElseThrow(() -> new EntityNotFoundException("Tài khoản không tồn tại"));
+
+        boolean isCorrectPassword = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        if (!isCorrectPassword) {
+            throw new SecurityException("Mật khẩu không đúng");
+        }
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUserName(),
                         request.getPassword()));
-
-        var user = userRepository.findByUserName(request.getUserName())
-                .orElseThrow(() -> new EntityNotFoundException("Tài khoản không tồn tại"));
 
         Device device = Device.builder()
                 .user(user)
