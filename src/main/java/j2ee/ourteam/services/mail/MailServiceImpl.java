@@ -16,7 +16,7 @@ public class MailServiceImpl implements IMailService{
     private final JavaMailSender mailSender;
 
     @Value("${spring.mail.username}")
-    private String fromEmail;
+    String fromEmail;
 
     @Override
     public void sendTextMail(String to, PasswordResetOtp otp) {
