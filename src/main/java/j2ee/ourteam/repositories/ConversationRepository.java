@@ -1,0 +1,31 @@
+package j2ee.ourteam.repositories;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import j2ee.ourteam.entities.Conversation;
+import org.springframework.data.jpa.repository.Query;
+
+public interface ConversationRepository extends JpaRepository<Conversation, UUID> {
+    List<Conversation> findAllByCreatedBy_UserName(String userName);
+
+    @Query("""
+        SELECT cm.conversation 
+        FROM ConversationMember cm
+        WHERE cm.user.id = :userId
+    """)
+    List<Conversation> findAllByMemberId(UUID userId);
+
+    Optional<Conversation> findFirstByCreatedByIdAndConversationType(UUID createdById, Conversation.ConversationType conversationType);
+
+
+    List<Conversation> findAllByCreatedByIdAndConversationType(UUID createdById, Conversation.ConversationType type);
+
+    Optional<Conversation> findByCreatedByIdAndConversationType(
+            UUID createdById,
+            Conversation.ConversationType conversationType
+    );
+
+}
